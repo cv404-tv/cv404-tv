@@ -28,7 +28,7 @@
     </div>
     <header class="site-header">
       <a class="brand" href="#home" aria-label="云谷404 首页"
-        ><img src="/assets/brand.svg" width="34" height="34" alt="" /><span
+        ><img src="/assets/brand-header.svg" width="72" height="52" alt="" /><span
           >云谷<span class="brand-number">404</span
           ><small>CREATOR TELEVISION</small></span
         ></a
@@ -54,7 +54,8 @@
             ><span class="tiny-signal">▂▃▅▇</span>
           </div>
           <div class="tv-main">
-            <div class="screen" id="screen">
+            <div class="screen is-off" id="screen">
+              <canvas id="channel-snow" class="channel-snow" width="224" height="128" aria-hidden="true" hidden></canvas>
               <div class="screen-landscape" aria-hidden="true">
                 <div class="sun"></div>
                 <div class="mountain mountain-back"></div>
@@ -68,6 +69,7 @@
               <div
                 class="channel-panel"
                 id="panel-home"
+                hidden
                 role="tabpanel"
                 aria-labelledby="tab-home"
               >
@@ -190,7 +192,7 @@
                   找到你的同频伙伴 <span>↗</span>
                 </button>
               </div>
-              <div class="standby" id="standby" hidden>
+              <div class="standby" id="standby">
                 <span>CV404</span>
                 <p>好想法，稍后继续。</p>
                 <button class="screen-cta" id="power-on">
@@ -202,8 +204,8 @@
               <button
                 class="power-button control-button"
                 id="power"
-                aria-label="关闭电视"
-                aria-pressed="true"
+                aria-label="打开电视"
+                aria-pressed="false"
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -214,7 +216,7 @@
                 >
                   <path d="M12 3v8M7 6a8 8 0 1 0 10 0" />
                 </svg></button
-              ><span class="power-led"></span>
+              ><span class="power-led off"></span>
               <div class="control-divider"></div>
               <span class="control-label">CHANNEL</span
               ><button

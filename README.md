@@ -13,6 +13,8 @@ npm run dev
 
 支持频道按钮、旋钮、方向键切换、浏览器前进后退、电源开关、手动启用的合成氛围声，以及原生参与说明对话框。移动端使用底部频道栏；减少动态效果的系统偏好会关闭动画。
 
+电视首次打开和刷新时默认关机，包括带频道 hash 的链接。点击电源或选择频道开机；切换到其他频道时播放 280–460ms 的随机雪花，连续换台、关机或页面进入后台会取消上一段特效。系统开启减少动态效果时不播放雪花。
+
 ## Cloudflare Workers 部署
 
 使用 [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/)，静态文件由 Worker 托管，无需数据库或服务端密钥。
@@ -40,6 +42,7 @@ npm run dev:worker
 - `guide.html`：第一期创作指南摘要。
 - `public/assets/first-event-guide.md`：原始完整指南，标注为历史活动资料。
 - `public/assets/event-poster.png`：用户现有第一期正式海报。
+- `public/assets/brand-header.svg`：页头专用矢量稿，收紧画布，移除外部米白底板，内部浅黄色区域通过遮罩镂空；保留白色图形、黑色轮廓和红色侧面。
 - `public/assets/brand.svg`：用户确认的最终 Logo，使用 `logo-v9-shapes/layouts/01b-deep-staircase-50.svg` 原始矢量稿；`public/favicon.svg` 使用相同图形。
 
 当前没有已核实的作品链接，因此作品频道显示征集说明；没有将示例作品包装为已发布项目。下一期时间、参与入口、合作关系需确认后更新。

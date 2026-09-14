@@ -5,12 +5,60 @@ const labels = ["主频道", "作品放映", "活动现场", "关于我们"];
 const tabs = [...document.querySelectorAll('[role="tab"]')];
 const screen = document.querySelector("#screen");
 let current = "home";
-let powered = true;
+let powered = false;
 let audioContext;
 let master;
 let sounding = false;
+const snow = document.querySelector("#channel-snow");
+const snowContext = snow.getContext("2d");
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+let snowFrame = 0;
+
+function stopSnow() {
+  cancelAnimationFrame(snowFrame);
+  snowFrame = 0;
+  snow.hidden = true;
+}
+
+function playSnow() {
+  stopSnow();
+  if (!snowContext || reducedMotion.matches || document.hidden) return;
+  const frame = snowContext.createImageData(snow.width, snow.height);
+  const duration = 280 + Math.random() * 180;
+  const grainRange = 70 + Math.random() * 50;
+  const started = performance.now();
+  let lastPaint = -Infinity;
+  snow.hidden = false;
+
+  function paint(now) {
+    const elapsed = now - started;
+    if (!powered || elapsed >= duration) {
+      stopSnow();
+      return;
+    }
+    if (now - lastPaint >= 1000 / 24) {
+      for (let i = 0; i < frame.data.length; i += 4) {
+        const value = 80 + Math.random() * grainRange;
+        frame.data[i] = value;
+        frame.data[i + 1] = value;
+        frame.data[i + 2] = value;
+        frame.data[i + 3] = 255;
+      }
+      snowContext.putImageData(frame, 0, 0);
+      snow.style.opacity = String(0.8 * Math.min(1, (duration - elapsed) / 140));
+      lastPaint = now;
+    }
+    snowFrame = requestAnimationFrame(paint);
+  }
+  paint(started);
+}
+
+reducedMotion.addEventListener("change", () => {
+  if (reducedMotion.matches) stopSnow();
+});
 
 function setPower(on) {
+  if (!on) stopSnow();
   powered = on;
   screen.classList.toggle("is-off", !on);
   document.querySelector("#standby").hidden = on;
@@ -22,6 +70,9 @@ function setPower(on) {
   document.querySelectorAll(".channel-panel").forEach((panel) => {
     panel.hidden = !on || panel.id !== `panel-${current}`;
   });
+  document.querySelector("#channel-announcement").textContent = on
+    ? `正在放映：${labels[channels.indexOf(current)]}`
+    : "电视已关闭，点击电源或选择频道开机。";
   if (master)
     master.gain.setTargetAtTime(
       sounding && on ? 0.035 : 0,
@@ -30,10 +81,11 @@ function setPower(on) {
     );
 }
 
-function selectChannel(channel, updateUrl = true) {
+function selectChannel(channel, updateUrl = true, wake = true) {
   if (!channels.includes(channel)) channel = "home";
+  const changed = channel !== current;
   current = channel;
-  setPower(true);
+  setPower(wake || powered);
   const index = channels.indexOf(channel);
   tabs.forEach((tab) => {
     const selected = tab.dataset.channel === channel;
@@ -45,13 +97,16 @@ function selectChannel(channel, updateUrl = true) {
   document
     .querySelector("#next-channel")
     .style.setProperty("--knob-angle", `${index * 90 - 35}deg`);
-  document.querySelector("#channel-announcement").textContent =
-    `正在放映：${labels[index]}`;
   screen.dataset.channel = channel;
-  screen.classList.remove("tuning");
-  void screen.offsetWidth;
-  screen.classList.add("tuning");
-  if (updateUrl && location.hash !== `#${channel}`) location.hash = channel;
+  if (changed && powered) {
+    screen.classList.remove("tuning");
+    void screen.offsetWidth;
+    screen.classList.add("tuning");
+    playSnow();
+  }
+  if (updateUrl && location.hash !== `#${channel}`) {
+    location.hash = channel;
+  }
 }
 
 document
@@ -71,11 +126,14 @@ document
   .addEventListener("click", () => setPower(!powered));
 document.querySelector("#power-on").addEventListener("click", () => {
   setPower(true);
-  document.querySelector("#power").focus();
+  tabs[channels.indexOf(current)].focus({ preventScroll: true });
 });
-window.addEventListener("hashchange", () =>
-  selectChannel(location.hash.slice(1), false),
-);
+window.addEventListener("hashchange", () => {
+  const hash = location.hash.slice(1);
+  const channel = channels.includes(hash) ? hash : "home";
+  // Our own hash update must not replay snow or undo a subsequent power-off.
+  if (channel !== current) selectChannel(channel, false);
+});
 document.addEventListener("keydown", (event) => {
   if (
     dialog.open ||
@@ -165,6 +223,7 @@ document.querySelector("#sound").addEventListener("click", async () => {
   }
 });
 document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopSnow();
   if (master)
     master.gain.setTargetAtTime(
       !document.hidden && sounding && powered ? 0.035 : 0,
@@ -173,4 +232,4 @@ document.addEventListener("visibilitychange", () => {
     );
 });
 document.querySelector("#year").textContent = new Date().getFullYear();
-selectChannel(location.hash.slice(1), false);
+selectChannel(location.hash.slice(1), false, false);
