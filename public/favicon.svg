@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">云谷404 深阶梯百分之五十重叠几何标志</title>
+  <desc id="desc">空心三角、圆环、空心三角以百分之五十横向覆盖和每级八十像素下移形成深阶梯。</desc>
+
+  <defs>
+    <path id="triangle" d="M240 60 430 420H50Z"/>
+    <circle id="circle" cx="240" cy="240" r="190"/>
+
+    <style>
+      .tri-depth,
+      .circle-depth,
+      .tri-outline,
+      .circle-outline,
+      .tri-face,
+      .circle-face {
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .tri-depth { stroke: #C83832; stroke-width: 122; }
+      .circle-depth { stroke: #C83832; stroke-width: 110; }
+      .tri-outline { fill: #F2EBDD; stroke: #22272A; stroke-width: 156; }
+      .circle-outline { fill: #F2EBDD; stroke: #22272A; stroke-width: 144; }
+      .tri-face { stroke: #FFFFFF; stroke-width: 122; }
+      .circle-face { stroke: #FFFFFF; stroke-width: 110; }
+    </style>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#F2EBDD"/>
+
+  <!-- 相邻平均外框横向覆盖 50%；每级向右下移动 190.8×80px。 -->
+  <g aria-hidden="true">
+    <use href="#triangle" class="tri-depth" transform="translate(175.52 289.32) scale(.72)"/>
+    <use href="#circle" class="circle-depth" transform="translate(366.32 369.32) scale(.72)"/>
+    <use href="#triangle" class="tri-depth" transform="translate(557.12 449.32) scale(.72)"/>
+  </g>
+
+  <!-- 遮挡顺序：左三角最底 → 圆环中层 → 右三角最上。 -->
+  <g aria-label="三角形">
+    <use href="#triangle" class="tri-outline" transform="translate(133.52 241.32) scale(.72)"/>
+    <use href="#triangle" class="tri-face" transform="translate(133.52 241.32) scale(.72)"/>
+  </g>
+  <g aria-label="圆形">
+    <use href="#circle" class="circle-outline" transform="translate(324.32 321.32) scale(.72)"/>
+    <use href="#circle" class="circle-face" transform="translate(324.32 321.32) scale(.72)"/>
+  </g>
+  <g aria-label="三角形">
+    <use href="#triangle" class="tri-outline" transform="translate(515.12 401.32) scale(.72)"/>
+    <use href="#triangle" class="tri-face" transform="translate(515.12 401.32) scale(.72)"/>
+  </g>
+</svg>

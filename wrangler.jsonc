@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cv404-tv",
+  "compatibility_date": "2026-09-14",
+  "workers_dev": true,
+  "routes": [{ "pattern": "cv404.tv", "custom_domain": true }],
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+  },
+}

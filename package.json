@@ -1,0 +1,18 @@
+{
+  "name": "cv404-tv",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "dev:worker": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:check": "npm run build && wrangler deploy --dry-run"
+  },
+  "devDependencies": {
+    "vite": "^6.4.1",
+    "wrangler": "^4.0.0"
+  }
+}
