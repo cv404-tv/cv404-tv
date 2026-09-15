@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { BrandMark } from "./brand-mark";
 import { PreferenceControls, usePreferences } from "./preferences";
 
 export function Backdrop() {
@@ -12,8 +13,8 @@ export function Backdrop() {
     </div>
   );
 }
-export function Header({ onJoin, onHome, guide = false }) {
-  const { t } = usePreferences();
+export function Header({ onHome, guide = false, tool = false }) {
+  const { t, locale } = usePreferences();
   return (
     <header className="site-header">
       <Link
@@ -29,9 +30,9 @@ export function Header({ onJoin, onHome, guide = false }) {
             : undefined
         }
       >
-        <img src="/assets/brand-header.svg" width="72" height="52" alt="" />
+        <BrandMark />
         <span>
-          云谷<span className="brand-number">404</span>
+          {t.brandName}{locale === "en" ? " " : ""}<span className="brand-number">404</span>
           <small>CREATOR TELEVISION</small>
         </span>
       </Link>
@@ -41,26 +42,22 @@ export function Header({ onJoin, onHome, guide = false }) {
         </span>
       )}
       <div className="header-actions">
+        {guide && <Link className="site-back-link" href="/#events">{t.back}</Link>}
         <PreferenceControls />
-        {guide ? (
-          <Link className="glass join-button" href="/#events">
-            {t.back} <span>↗</span>
-          </Link>
-        ) : (
-          <button className="glass join-button" onClick={onJoin}>
-            {t.join} <span>↗</span>
-          </button>
-        )}
+        {!tool && <Link className="glass join-button" href="/tier-list">
+          {t.rate} <span aria-hidden="true">↗</span>
+        </Link>}
       </div>
     </header>
   );
 }
 export function Footer() {
-  const { t } = usePreferences();
+  const { t, locale } = usePreferences();
   return (
     <footer className="site-footer">
-      <span>© {new Date().getFullYear()} 云谷404</span>
+      <span>© {new Date().getFullYear()} {t.brand}</span>
       <span>{t.footer}</span>
+      <Link href="/tier-list">{locale === "zh" ? "锐评小工具" : "Hot Take Tool"} ↗</Link>
       <Link href="/guide">{t.guideLink} ↗</Link>
     </footer>
   );

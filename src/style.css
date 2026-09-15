@@ -152,11 +152,12 @@ button:active {
   font-weight: 650;
   letter-spacing: 1px;
 }
-.brand img {
+.brand-mark {
   width: 72px;
   height: 52px;
   flex-shrink: 0;
   object-fit: contain;
+  overflow: visible;
 }
 .brand-number {
   font-size: 26px;
@@ -816,6 +817,19 @@ main {
   margin-right: 6px;
   font-size: 8px;
 }
+.home-join {
+  max-width: 870px;
+  margin: 0 auto 36px;
+  padding-top: 22px;
+  border-top: 1px solid var(--stroke-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.home-join p { margin: 0; font-size: 13px; line-height: 1.7; color: var(--muted); }
+.home-join .join-button { flex-shrink: 0; }
 .site-footer {
   max-width: 1328px;
   width: calc(100% - 80px);
@@ -1091,9 +1105,6 @@ main {
   .channel-knob:hover {
     filter: brightness(1.2);
   }
-  .brand:hover {
-    opacity: 0.85;
-  }
   .site-footer a:hover {
     color: white;
   }
@@ -1362,7 +1373,7 @@ main {
     font-size: 6px;
     letter-spacing: 1.7px;
   }
-  .brand img {
+  .brand-mark {
     width: 60px;
     height: 44px;
   }

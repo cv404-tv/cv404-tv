@@ -1,11 +1,19 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "cv404-tv",
+  "main": "worker/index.js",
   "compatibility_date": "2026-09-14",
   "workers_dev": true,
   "routes": [{ "pattern": "cv404.tv", "custom_domain": true }],
   "assets": {
+    "binding": "ASSETS",
     "directory": "./out",
     "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"],
   },
+  "durable_objects": {
+    "bindings": [{ "name": "TIER_SNAPSHOTS", "class_name": "TierSnapshot" }],
+  },
+  "migrations": [{ "tag": "tier-snapshots-v1", "new_sqlite_classes": ["TierSnapshot"] }],
+  "ratelimits": [{ "name": "SHARE_LIMITER", "namespace_id": "40401", "simple": { "limit": 30, "period": 60 } }],
 }

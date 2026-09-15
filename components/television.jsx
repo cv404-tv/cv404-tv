@@ -225,7 +225,7 @@ export default function Television() {
         {t.skip}
       </a>
       <Backdrop />
-      <Header onJoin={join} onHome={() => selectChannel("home")} />
+      <Header onHome={() => selectChannel("home")} />
       <main>
         <div className="intro">
           <span className="broadcast-dot" />
@@ -279,7 +279,7 @@ export default function Television() {
                       {t.channels[channels.indexOf(current)]}
                     </span>
                     <span className="screen-status">
-                      <i /> 云谷404 TV
+                      <i /> {t.brand} TV
                     </span>
                   </div>
                   <div className="channel-panel" {...panelProps("home")}>
@@ -469,7 +469,7 @@ export default function Television() {
                 <i /> MADE FOR THE MAKERS
               </span>
               <span>
-                云谷404 <b>STEREO</b>
+                {t.brand} <b>STEREO</b>
               </span>
             </div>
           </div>
@@ -531,9 +531,15 @@ export default function Television() {
           </p>
           <span>{t.curious}</span>
         </div>
+        <div className="home-join">
+          <p>{t.motto}</p>
+          <button className="glass join-button" onClick={join} aria-haspopup="dialog">
+            {t.join} <span aria-hidden="true">↗</span>
+          </button>
+        </div>
         <noscript>
           <p className="noscript-note">
-            云谷404 — Enable JavaScript for the interactive TV.{" "}
+            云谷404 / Cloud Valley 404 — Enable JavaScript for the interactive TV.{" "}
             <a href="/guide">创作指南 / Creator guide ↗</a>
           </p>
         </noscript>
