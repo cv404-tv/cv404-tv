@@ -82,8 +82,10 @@ html[data-theme="light"] {
 }
 html[data-theme="light"] .ambience {
   background:
-    radial-gradient(ellipse at 30% 10%, #ffffffbb, transparent 65%),
-    linear-gradient(160deg, #f7f2e9, #eee5d6 65%, #dfd4c1);
+    radial-gradient(ellipse at 12% 42%, #9caaa54a, transparent 52%),
+    radial-gradient(ellipse at 90% 28%, #c838321c, transparent 46%),
+    radial-gradient(ellipse at 38% 0%, #ffffffcc, transparent 58%),
+    linear-gradient(160deg, #f3eee5, #e8dfce 65%, #d6cbb8);
 }
 html[data-theme="light"] .ambience > i:nth-child(2) {
   opacity: 0.06;
@@ -91,22 +93,58 @@ html[data-theme="light"] .ambience > i:nth-child(2) {
 html[data-theme="light"] .floor-grid {
   opacity: 0.25;
 }
-html[data-theme="light"] .television {
-  background: linear-gradient(
-    125deg,
-    #fff9,
-    #bcb4a22b 35%,
-    #fffc 70%,
-    #d7c9b670
-  );
-  border-color: #8d877650;
+/* A bright rim and a shaded lower edge make clear glass visible on pale paper. */
+html[data-theme="light"] .glass {
+  backdrop-filter: blur(20px) saturate(155%);
+  -webkit-backdrop-filter: blur(20px) saturate(155%);
+  border-color: #777a7047;
   box-shadow:
-    inset 0 2px 2px #fff,
-    inset 2px 0 2px #fff8,
-    inset -2px -2px 2px #8a806b55;
+    inset 0 1px 0 #fff,
+    inset 1px 0 0 #ffffffb3,
+    inset 0 -1px 0 #73756847,
+    0 5px 14px #514b3d0d;
+}
+html[data-theme="light"] .preference-controls {
+  background: linear-gradient(135deg, #ffffffb3, #ffffff24 55%, #a4aba329);
+}
+html[data-theme="light"] .television {
+  background:
+    radial-gradient(ellipse at var(--light-x) var(--light-y), #ffffff80, transparent 58%),
+    linear-gradient(125deg, #ffffffa6, #81948e33 24%, #ffffff26 43%, #ffffff94 66%, #b5aaa044 84%, #ffffff66);
+  border-color: #7c857c80;
+  box-shadow:
+    inset 0 3px 2px #fff,
+    inset 3px 0 3px #ffffffb3,
+    inset -2px -3px 3px #626c6166,
+    inset 0 0 18px #ffffff4d,
+    0 18px 40px -18px #514b3d52,
+    0 3px 8px #514b3d14;
+}
+html[data-theme="light"] .television::before {
+  padding: 2px;
+  border-color: #ffffff66;
+  background:
+    radial-gradient(ellipse at var(--light-x) var(--light-y), #fff, transparent 70%),
+    linear-gradient(135deg, #ffffffcc, #697a7059 38%, #ffffffd9 68%, #697a7066);
+}
+html[data-theme="light"] .television::after {
+  /* Keep reflected light on the shell so it cannot wash out screen content. */
+  inset: 1px;
+  padding: 10px;
+  background: linear-gradient(115deg, transparent 8%, #ffffffa6 22%, transparent 35%, transparent 62%, #ffffff80 76%, transparent 90%);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
 }
 html[data-theme="light"] .channel-dock {
-  background: linear-gradient(130deg, #fff9, #ffffff30);
+  background: linear-gradient(130deg, #ffffffb3, #ffffff33 45%, #b2b9ad33 75%, #ffffff80);
+  box-shadow:
+    inset 0 2px 1px #fff,
+    inset 1px 0 1px #ffffffb3,
+    inset -1px -2px 2px #737b6b4d,
+    0 10px 24px -12px #514b3d4d;
 }
 html[data-theme="light"] .channel-tabs button {
   color: #555a55;
@@ -151,6 +189,17 @@ html[data-theme="light"] .site-footer {
 html[data-theme="light"] .power-button,
 html[data-theme="light"] .channel-knob {
   border-color: #22272a33;
+  box-shadow:
+    inset 0 2px 2px #fff,
+    inset 0 -2px 2px #68706459,
+    0 3px 6px #514b3d1f;
+}
+html[data-theme="light"] .tv-aerial i {
+  background: linear-gradient(90deg, #7c857c66, #fff, #7c857c99);
+}
+html[data-theme="light"] .tv-aerial b {
+  border-color: #7c857c66;
+  background: linear-gradient(135deg, #ffffff99, #84908333);
 }
 html[data-theme="light"] .control-divider {
   background: #22272a26;
@@ -162,6 +211,7 @@ html[data-theme="light"] .tv-stand i {
 html[data-theme="light"] .tv-stand b {
   background: linear-gradient(#fff9, #aa9d8144);
   border-color: #8a806b50;
+  box-shadow: inset 0 1px 1px #fff, 0 4px 6px #514b3d26;
 }
 html[data-theme="light"] .join-dialog {
   color: #22272a;
