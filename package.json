@@ -4,15 +4,20 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "vite build",
-    "preview": "vite preview --host 127.0.0.1",
-    "dev:worker": "npm run build && wrangler dev",
+    "dev": "next dev --hostname 127.0.0.1 --port 3000",
+    "build": "next build && node scripts/postbuild.mjs",
+    "preview": "wrangler dev --port 8787",
+    "dev:worker": "npm run build && wrangler dev --port 8787",
     "deploy": "npm run build && wrangler deploy",
     "deploy:check": "npm run build && wrangler deploy --dry-run"
   },
   "devDependencies": {
-    "vite": "^6.4.1",
     "wrangler": "^4.0.0"
+  },
+  "dependencies": {
+    "next": "^16.3.5",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "three": "^0.186.0"
   }
 }

@@ -5,7 +5,7 @@
   "workers_dev": true,
   "routes": [{ "pattern": "cv404.tv", "custom_domain": true }],
   "assets": {
-    "directory": "./dist",
+    "directory": "./out",
     "not_found_handling": "404-page",
   },
 }

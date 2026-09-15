@@ -5,3 +5,5 @@ dist/
 .dev.vars*
 output/
 .DS_Store
+.next/
+out/

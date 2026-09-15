@@ -1,23 +1,21 @@
 # 云谷404 TV
 
-云谷404 的液态玻璃电视官网。四个频道承载品牌、作品征集、第一期活动档案和社区介绍。
+基于 **Next.js App Router + React + Three.js** 的云谷404官网。保留液态玻璃电视、默认关机、频道切换、随机雪花、开关机动画、鼠标视差和立体 404。
 
-配色沿用最终 Logo：米白 `#F2EBDD`、墨黑 `#22272A`、品牌红 `#C83832`。深色背景与暖灰玻璃外壳承托米白屏幕，红色用于按钮、频道选中态和信号灯。品牌色定义在 `src/style.css` 的 `--brand-*` 变量中。
-
-## 本地运行
+## 开发与构建
 
 ```sh
 npm ci
 npm run dev
+# 默认 http://127.0.0.1:3000；端口被占用时：
+npm run dev -- --port 3004
+npm run build
+npm run preview
 ```
 
-支持频道按钮、旋钮、方向键切换、浏览器前进后退、电源开关、手动启用的合成氛围声，以及原生参与说明对话框。移动端使用底部频道栏；减少动态效果的系统偏好会关闭动画。
+`npm run build` 使用 Next.js 静态导出，生成 `out/`；`npm run preview` 在本地 Workers runtime 的 8787 端口预览生产产物。此前的 Vite 入口已移除。
 
-电视首次打开和刷新时默认关机，包括带频道 hash 的链接。点击电源或选择频道开机；切换到其他频道时播放 280–460ms 的随机雪花，连续换台、关机或页面进入后台会取消上一段特效。系统开启减少动态效果时不播放雪花。
-
-## Cloudflare Workers 部署
-
-使用 [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/)，静态文件由 Worker 托管，无需数据库或服务端密钥。
+## Cloudflare Workers
 
 ```sh
 npm run deploy:check
@@ -25,26 +23,34 @@ npx wrangler login
 npm run deploy
 ```
 
-首次部署会创建 `cv404-tv` Worker。Wrangler 登录必须由账户持有人完成。也可以在 Cloudflare Workers Builds 中连接仓库，构建命令 `npm run build`，部署命令 `npx wrangler deploy`。
+Worker 名称 `cv404-tv`，自定义域名 `cv404.tv`，资产目录 `out/`。正式发布使用管理该域名的 Cloudflare 账户。Workers Builds 可配置构建命令 `npm run build`，部署命令 `npx wrangler deploy`。
 
-正式域名为 `cv404.tv`，`wrangler.jsonc` 已配置该自定义域名，页面 canonical 与 sitemap 同步使用此地址。部署时登录的 Cloudflare 账户需要管理 `cv404.tv` 所在 zone；正式发布前确认目标账户及现有域名绑定。上线后验证首页、`/#events`、`/guide.html`、不存在路径的 404 和响应头。
+当前使用 Next.js 官方静态导出能力，适合现有展示和客户端交互。未来使用 Server Actions、运行时服务端渲染、Cookie 会话或 API Route 时，需要关闭静态导出并配置适配 Workers 的 Next.js 服务端部署方案。当前没有登录、数据库或投稿接收接口。
 
-```sh
-npm run dev:worker
-```
+路由：`/` 是电视首页，`/guide` 是创作指南；`/guide.html` 保留为静态文件入口，便于旧链接继续访问；不存在的页面返回 404。Next.js 的 `_next/` 资源及路由载荷一同发布，支持 App Router 页面跳转。
 
-上述命令可在本地 Workers runtime 中检查真实资产路由和 `_headers`。
+## 语言与主题
 
-## 内容维护
+- 页头支持中文／英文、日间／夜间切换。
+- 中文为默认语言；主题首次跟随系统，手动选择后记住偏好。
+- `cv404-language` 和 `cv404-theme` 保存在浏览器本地；存储不可用时仍可切换。
+- 翻译覆盖四个频道、控制按钮、参与说明、指南及 404 页面。品牌名称保留“云谷404”；海报和原始指南是中文历史材料，英文页面已标注。
+- 切换语言或主题不会重置当前电视频道与电源；重新加载或重新进入首页时默认关机。
 
-- `index.html`：四个频道正文和参与说明。
-- `src/main.js`：频道交互；顶部 `contact` 可接入经确认的长期 HTTPS 参与入口。
-- `guide.html`：第一期创作指南摘要。
-- `public/assets/first-event-guide.md`：原始完整指南，标注为历史活动资料。
-- `public/assets/event-poster.png`：用户现有第一期正式海报。
-- `public/assets/brand-header.svg`：页头专用矢量稿，收紧画布，移除外部米白底板，内部浅黄色区域通过遮罩镂空；保留白色图形、黑色轮廓和红色侧面。
-- `public/assets/brand.svg`：用户确认的最终 Logo，使用 `logo-v9-shapes/layouts/01b-deep-staircase-50.svg` 原始矢量稿；`public/favicon.svg` 使用相同图形。
+## 代码组织
 
-当前没有已核实的作品链接，因此作品频道显示征集说明；没有将示例作品包装为已发布项目。下一期时间、参与入口、合作关系需确认后更新。
+- `app/`：Next.js 布局、首页、指南和 404 路由。
+- `components/television.jsx`：电视 React 状态、频道内容、开关机和音频生命周期。
+- `components/preferences.jsx`：共享语言／主题状态及切换控件。
+- `components/site-shell.jsx`、`components/guide.jsx`：共享页头页脚和指南。
+- `lib/copy.js`：中英文内容；新增内容时同步更新两种语言。
+- `lib/static-effect.js`：随机雪花绘制与取消。
+- `src/style.css`、`src/preferences.css`：品牌样式、双主题和英文布局适配。
+- `src/tv-effects.js`、`src/tv-effects.css`：机身视差与玻璃高光。
+- `src/tv-scene.js`：按需加载的 Three.js 立体字；无外部模型、字体或贴图请求。
+- `public/assets/brand-header.svg`：最终 Logo 页头版，收紧画布，米白区域透明镂空。
+- `public/assets/event-poster.png`、`first-event-guide.md`：第一期活动原始素材。
 
-`dist/` 是可部署产物，`output/` 是本地验收截图，不提交构建产物、凭据或个人资料。
+品牌色为米白 `#F2EBDD`、墨黑 `#22272A`、红色 `#C83832`。三维渲染像素比上限 1.5，指针停下后停止连续渲染；后台、关机、其他频道或离开视口时不绘制三维场景。WebGL 不可用时保留 CSS 装饰。系统减少动态效果时关闭视差、开关机动画和雪花。
+
+`node_modules/`、`.next/`、`out/`、`.wrangler/`、`output/` 和本地凭据不提交。官网当前未接入 shadcn/ui；迁移后的 React 结构可继续接入所需组件。
