@@ -202,7 +202,7 @@ function TierWorkspace() {
       if (!response.ok) throw new Error(response.status === 429 ? "rateLimited" : response.status === 413 ? "tooLarge" : "shareError");
       const data = await response.json();
       if (!SHARE_ID.test(data.id)) throw new Error("shareError");
-      setShare({ url: `${window.location.origin}/tier-list?share=${data.id}`, content: sharedContent });
+      setShare({ url: `${window.location.origin}/tier?share=${data.id}`, content: sharedContent });
     } catch (error) { setNotice(error.message === "too_large" ? "tooLarge" : ["rateLimited", "tooLarge"].includes(error.message) ? error.message : "shareError"); }
     finally { busyShare.current = false; setSharing(false); }
   }
@@ -303,11 +303,11 @@ function TierWorkspace() {
     <main className="tier-main" id="main-content">
       <section className="tier-intro">
         <div><p className="tier-eyebrow">{t.eyebrow}</p><h1>{t.title}<span className="tier-title-dot">.</span></h1><p className="tier-tagline">{t.tagline} <span>{mode === "view" ? t.sharedIntro : t.intro}</span></p></div>
-        <div className="tier-intro-action">{editable ? <><button className="tier-primary" onClick={publish} disabled={sharing || uploading || !ranked.length}>{sharing ? t.sharing : t.share}</button><small>{t.shareNote}</small></> : mode === "view" ? <><a className="tier-primary" href="/tier-list">{t.create}</a><small>{t.shared}</small></> : null}</div>
+        <div className="tier-intro-action">{editable ? <><button className="tier-primary" onClick={publish} disabled={sharing || uploading || !ranked.length}>{sharing ? t.sharing : t.share}</button><small>{t.shareNote}</small></> : mode === "view" ? <><a className="tier-primary" href="/tier">{t.create}</a><small>{t.shared}</small></> : null}</div>
       </section>
 
       {mode === "loading" && <div className="tier-loading" role="status">{t.loading}</div>}
-      {mode === "error" && <div className="tier-loading" role="alert"><p>{t[loadError]}</p><button className="tier-primary" onClick={() => window.location.reload()}>{t.retry}</button><a href="/tier-list">{t.create}</a></div>}
+      {mode === "error" && <div className="tier-loading" role="alert"><p>{t[loadError]}</p><button className="tier-primary" onClick={() => window.location.reload()}>{t.retry}</button><a href="/tier">{t.create}</a></div>}
 
       {share && <section className="tier-share-panel" aria-label={t.linkReady}>
         <div><strong>{t.linkReady}</strong><button className="tier-quiet" onClick={() => setShare(null)}>{t.close} ×</button></div>

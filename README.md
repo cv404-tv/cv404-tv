@@ -27,11 +27,11 @@ Worker 名称 `cv404-tv`，自定义域名 `cv404.tv`，资产目录 `out/`。�
 
 页面继续使用 Next.js 官方静态导出。`worker/index.js` 单独处理 `/api/*`，用 Cloudflare SQLite Durable Objects 保存匿名白板快照，其余请求走静态资产。没有用户登录或投稿接收接口。未来使用 Next.js Server Actions、运行时服务端渲染、Cookie 会话或 API Route 时，仍需配置 Next.js 服务端适配方案。
 
-路由：`/` 是电视首页，`/guide` 是创作指南，`/tier-list` 是「锐评小工具」（从夯到拉排名玩法）；`/tier-list?share=<UUID>` 展示只读分享版本。`/guide.html` 保留为静态文件入口，便于旧链接继续访问；不存在的页面返回 404。Next.js 的 `_next/` 资源及路由载荷一同发布，支持 App Router 页面跳转。
+路由：`/` 是电视首页，`/guide` 是创作指南，`/tier` 是「锐评小工具」（从夯到拉排名玩法）；`/tier?share=<UUID>` 展示只读分享版本。旧的 `/tier-list`（包括分享参数）永久重定向到 `/tier`；`/guide.html` 保留为静态文件入口，便于旧链接继续访问；不存在的页面返回 404。Next.js 的 `_next/` 资源及路由载荷一同发布，支持 App Router 页面跳转。
 
 ## 锐评小工具
 
-其他页面右上角「锐评一下」进入 `/tier-list`，锐评页面自身隐藏此入口；首页「一起做点东西」移至电视与频道切换区下方，继续打开参与说明弹框。
+其他页面右上角「锐评一下」进入 `/tier`，锐评页面自身隐藏此入口；首页「一起做点东西」移至电视与频道切换区下方，继续打开参与说明弹框。
 
 - 首个默认分类是「Logo 贴纸」，合并品牌预设和自定义上传：顶部的「自定义 Logo」入口打开上传弹框，支持选填名称、格式与大小校验、成功后自动关闭；第二个分类是「文字贴纸」。预设第一项是云谷404（复用 `public/assets/brand-header.svg`），随后是 14 个模型品牌：DeepSeek、千问、豆包、智谱、Claude、ChatGPT、Gemini、Grok、Kimi、MiniMax、文心一言、腾讯混元、讯飞星火、Mistral。每项使用 SVG Logo＋名称，AI 品牌素材来自 Lobe Icons，已固定版本保存在 `public/assets/ai-logos/`，附来源和授权文件。LLaMA、Gemma 已从选择列表移除；兼容已有草稿与分享。用户只能选用；系统目录位于 `lib/ai-stickers.js` 的 `LOGO_STICKERS`，不提供公开增删改接口。预设沿用 `type: "ai"` 存储格式，兼容已有草稿与分享。服务端通过 `presetId` 还原名称与样式，忽略客户端的外观覆盖。修改已有贴纸时使用新的版本 ID，并保留旧定义，确保已分享快照不变。
 - 五档白板，文字贴纸支持六种底色；Logo 支持 PNG / JPEG / WebP（单文件最多 500 KB，每块白板最多 6 个自定义 Logo），在浏览器中缩小到最长边 256 px 后保存，不上传原图。不调用 AI 图片生成服务。前端先限制原文件大小和数量，分享 API 再校验自定义 Logo 数量。
@@ -42,7 +42,7 @@ Worker 名称 `cv404-tv`，自定义域名 `cv404.tv`，资产目录 `out/`。�
 - `POST /api/tier-boards` 将已上榜的贴纸保存为独立快照，返回随机 UUID 分享链接。待上榜贴纸不分享。`GET /api/tier-boards/<UUID>` 匿名读取；无修改、删除或列表接口。任何持有链接的人都能查看，分享后编辑草稿不会改变快照。
 - Worker 校验类型、大小、图片格式、同源请求；Cloudflare Rate Limiting binding 限制同一 IP 每个位置每分钟约 30 次创建请求（平台限流不是全局精确配额）。图片仅接受内嵌栅格数据，不接受外部 URL / SVG。
 - SQLite Durable Object 命名空间随首次部署的 `tier-snapshots-v1` migration 创建；无需额外密钥或手动填写数据库 ID。需部署到支持该绑定的 Cloudflare 账户后，外部访客才能使用分享。上线部署与本地验收是独立步骤。
-- `npm run dev` 只运行静态前端；验证分享使用 `npm run dev:worker`（或先 build，再 preview），打开 `http://127.0.0.1:8787/tier-list`。本地快照在 `.wrangler/`，不会上传到线上；本地分享 URL 只在本机可访问。
+- `npm run dev` 只运行静态前端；验证分享使用 `npm run dev:worker`（或先 build，再 preview），打开 `http://127.0.0.1:8787/tier`。本地快照在 `.wrangler/`，不会上传到线上；本地分享 URL 只在本机可访问。
 
 检查：`npm test` 覆盖数据校验与贴纸移动；本地 Workers preview 运行时用 `npm run test:api` 验证匿名创建、读取、快照不可变、唯一链接、输入限制和原有静态路由。测试脚本只允许 localhost，创建的是本地测试数据。
 

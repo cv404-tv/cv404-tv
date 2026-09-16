@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useId, useRef } from "react";
-import { Playback } from "../lib/brand-playback";
+import { Playback, START_PHASE } from "../lib/brand-playback";
 import { BRAND_PATH, HOME_POSITIONS, getTrianglePositions, getRingPose, getRingReturnPose } from "../lib/brand-motion";
+
+const LOOP_MS = 6000;
 
 function useBrandMotion(ref) {
   useEffect(() => {
@@ -18,6 +20,7 @@ function useBrandMotion(ref) {
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const hover = matchMedia("(hover: hover)");
     const playback = new Playback();
+    playback.loopMs = LOOP_MS;
     const length = path.getTotalLength();
     let maxRadius = 1;
     for (let i = 0; i < 256; i++) {
@@ -29,6 +32,7 @@ function useBrandMotion(ref) {
     let ringState = "idle";
     let displayedRing = { opening: 1, side: 0 };
     let ringReturnFrom = displayedRing;
+    let armed = true;
 
     const render = () => {
       const { progress, blend } = playback;
@@ -40,7 +44,9 @@ function useBrandMotion(ref) {
         const y = home.y + (point.y - home.y) * blend;
         const radius = Math.min(1, Math.hypot(point.x, point.y) / maxRadius);
         const ease = radius * radius * (3 - 2 * radius);
-        const size = .4 + (.13 + .27 * ease - .4) * blend;
+        // Keep the mark legible at header size. Distance should feel like
+        // depth, not like either triangle disappears from the wordmark.
+        const size = .4 + (.24 + .16 * ease - .4) * blend;
         nodes.forEach((node) => {
           node.setAttribute("transform", `translate(${x} ${y}) scale(${size})`);
           node.setAttribute("opacity", Number((node.dataset.plane === "front") === (y >= 0)));
@@ -71,17 +77,14 @@ function useBrandMotion(ref) {
       frame = 0;
       if (previous !== null) playback.advance(Math.min(now - previous, 100));
       previous = now;
+      if (playback.wantsPlay && playback.progress >= START_PHASE + 1) {
+        playback.setPlaying(false);
+      }
       render();
       if (playback.state !== "idle") frame = requestAnimationFrame(tick);
       else previous = null;
     };
-    const sync = () => {
-      if (reduced.matches || document.hidden) {
-        playback.wantsPlay = false;
-        playback.settle();
-      } else {
-        playback.setPlaying((hover.matches && link.matches(":hover")) || link.matches(":focus-visible"));
-      }
+    const schedule = () => {
       render();
       if (playback.state === "idle") {
         cancelAnimationFrame(frame);
@@ -92,18 +95,44 @@ function useBrandMotion(ref) {
         frame = requestAnimationFrame(tick);
       }
     };
-    const events = ["pointerenter", "pointerleave", "focusin", "focusout"];
-    events.forEach((event) => link.addEventListener(event, sync));
-    reduced.addEventListener("change", sync);
-    hover.addEventListener("change", sync);
-    document.addEventListener("visibilitychange", sync);
-    sync();
+    const start = () => {
+      if (!armed || reduced.matches || document.hidden) return;
+      armed = false;
+      playback.setPlaying(true);
+      schedule();
+    };
+    const stop = () => {
+      armed = true;
+      playback.setPlaying(false);
+      schedule();
+    };
+    const pointerEnter = () => { if (hover.matches) start(); };
+    const focusIn = () => start();
+    const environmentChanged = () => {
+      if (reduced.matches || document.hidden) {
+        armed = true;
+        playback.wantsPlay = false;
+        playback.settle();
+        schedule();
+      }
+    };
+    link.addEventListener("pointerenter", pointerEnter);
+    link.addEventListener("pointerleave", stop);
+    link.addEventListener("focusin", focusIn);
+    link.addEventListener("focusout", stop);
+    reduced.addEventListener("change", environmentChanged);
+    hover.addEventListener("change", environmentChanged);
+    document.addEventListener("visibilitychange", environmentChanged);
+    schedule();
     return () => {
       cancelAnimationFrame(frame);
-      events.forEach((event) => link.removeEventListener(event, sync));
-      reduced.removeEventListener("change", sync);
-      hover.removeEventListener("change", sync);
-      document.removeEventListener("visibilitychange", sync);
+      link.removeEventListener("pointerenter", pointerEnter);
+      link.removeEventListener("pointerleave", stop);
+      link.removeEventListener("focusin", focusIn);
+      link.removeEventListener("focusout", stop);
+      reduced.removeEventListener("change", environmentChanged);
+      hover.removeEventListener("change", environmentChanged);
+      document.removeEventListener("visibilitychange", environmentChanged);
     };
   }, [ref]);
 }

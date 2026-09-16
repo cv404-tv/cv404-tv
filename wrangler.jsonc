@@ -9,7 +9,7 @@
     "binding": "ASSETS",
     "directory": "./out",
     "not_found_handling": "404-page",
-    "run_worker_first": ["/api/*"],
+    "run_worker_first": ["/api/*", "/tier-list", "/tier-list/*"],
   },
   "durable_objects": {
     "bindings": [{ "name": "TIER_SNAPSHOTS", "class_name": "TierSnapshot" }],

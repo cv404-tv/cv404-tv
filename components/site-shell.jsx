@@ -44,7 +44,7 @@ export function Header({ onHome, guide = false, tool = false }) {
       <div className="header-actions">
         {guide && <Link className="site-back-link" href="/#events">{t.back}</Link>}
         <PreferenceControls />
-        {!tool && <Link className="glass join-button" href="/tier-list">
+        {!tool && <Link className="glass join-button" href="/tier">
           {t.rate} <span aria-hidden="true">↗</span>
         </Link>}
       </div>
@@ -57,7 +57,7 @@ export function Footer() {
     <footer className="site-footer">
       <span>© {new Date().getFullYear()} {t.brand}</span>
       <span>{t.footer}</span>
-      <Link href="/tier-list">{locale === "zh" ? "锐评小工具" : "Hot Take Tool"} ↗</Link>
+      <Link href="/tier">{locale === "zh" ? "锐评小工具" : "Hot Take Tool"} ↗</Link>
       <Link href="/guide">{t.guideLink} ↗</Link>
     </footer>
   );

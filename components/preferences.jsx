@@ -50,7 +50,7 @@ export function PreferencesProvider({ children }) {
   }, [theme, ready]);
   useEffect(() => {
     document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
-    document.title = pathname.startsWith("/tier-list")
+    document.title = pathname.startsWith("/tier")
       ? locale === "zh" ? "锐评小工具 · 云谷404" : "Hot Take Tool · Cloud Valley 404"
       : pathname.startsWith("/guide")
         ? copy[locale].guideTitle

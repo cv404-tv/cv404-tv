@@ -30,6 +30,9 @@ const customLogos = Array.from({ length: 7 }, (_, index) => ({ id: `logo-${index
 assert.equal((await post({ ...board, stickers: customLogos })).status, 400);
 assert.equal((await post({ ...board, title: "x".repeat(1_000_001) })).status, 413);
 assert.equal((await fetch(`${origin}/api/tier-boards/${crypto.randomUUID()}`)).status, 404);
+const legacy = await fetch(`${origin}/tier-list?share=${a.id}`, { redirect: "manual" });
+assert.equal(legacy.status, 308);
+assert.equal(legacy.headers.get("location"), `${origin}/tier?share=${a.id}`);
 assert.equal((await fetch(`${origin}${a.path}`)).status, 200);
 assert.equal((await fetch(`${origin}/guide`)).status, 200);
 assert.equal((await fetch(`${origin}/not-a-real-route`)).status, 404);
@@ -41,4 +44,4 @@ assert.equal(aiSaved.text, "Claude");
 assert.equal(aiSaved.color, "red");
 assert.equal(aiSaved.presetId, "claude-v1");
 assert.equal((await post({ ...board, stickers: [{ id: "ai", type: "ai", presetId: "user-model", zone: "a" }] })).status, 400);
-console.log("PASS: unique snapshots, anonymous reads, immutable contents, private tray, input and custom-logo limits, origin checks, static routes and system-owned AI stickers.");
+console.log("PASS: unique snapshots, anonymous reads, immutable contents, private tray, input and custom-logo limits, origin checks, legacy redirect, static routes and system-owned AI stickers.");

@@ -48,6 +48,10 @@ async function readLimited(request) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/tier-list" || url.pathname === "/tier-list/") {
+      url.pathname = "/tier";
+      return Response.redirect(url, 308);
+    }
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
     if (url.pathname === "/api/tier-boards") {
       if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405, { Allow: "POST" });
@@ -74,7 +78,7 @@ export default {
           method: "POST", body: JSON.stringify({ ...board, createdAt: new Date().toISOString() }),
         }));
         if (!saved.ok) throw new Error("save_failed");
-        return json({ id, path: `/tier-list?share=${id}` }, 201);
+        return json({ id, path: `/tier?share=${id}` }, 201);
       } catch { return json({ error: "unavailable" }, 503); }
     }
     const id = url.pathname.slice("/api/tier-boards/".length);
