@@ -40,6 +40,7 @@ function SplitTitle({ lines }) {
 export default function Television() {
   const { t } = usePreferences();
   const [current, setCurrent] = useState("home");
+  const [dialAngle, setDialAngle] = useState(-45);
   const [phase, setPhase] = useState("off");
   const [reduced, setReduced] = useState(false);
   const [sound, setSound] = useState(false);
@@ -59,7 +60,9 @@ export default function Television() {
   sceneState.current = { powered, channel: current };
 
   useEffect(() => {
-    setCurrent(normalize(location.hash.slice(1)));
+    const initialChannel = normalize(location.hash.slice(1));
+    setCurrent(initialChannel);
+    setDialAngle(channels.indexOf(initialChannel) * 90 - 45);
     const media = matchMedia("(prefers-reduced-motion: reduce)");
     setReduced(media.matches);
     const motionChange = () => {
@@ -132,22 +135,51 @@ export default function Television() {
   useEffect(() => {
     if (audio.current)
       audio.current.gain.gain.setTargetAtTime(
-        sound && powered && foreground ? 0.035 : 0,
+        sound && powered && foreground ? 0.018 : 0,
         audio.current.context.currentTime,
         0.2,
       );
   }, [sound, powered, foreground]);
 
+  const playMechanicalClick = useCallback(() => {
+    if (!sound || !audio.current || audio.current.context.state !== "running")
+      return;
+    const { context } = audio.current;
+    const oscillator = context.createOscillator();
+    const clickGain = context.createGain();
+    const now = context.currentTime;
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(900, now);
+    oscillator.frequency.exponentialRampToValueAtTime(90, now + 0.035);
+    clickGain.gain.setValueAtTime(0.07, now);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+    oscillator.connect(clickGain);
+    clickGain.connect(context.destination);
+    oscillator.onended = () => {
+      oscillator.disconnect();
+      clickGain.disconnect();
+    };
+    oscillator.start(now);
+    oscillator.stop(now + 0.05);
+  }, [sound]);
+
   const selectChannel = useCallback(
     (value, writeHash = true) => {
       const next = normalize(value);
-      if (next !== currentRef.current && powered) staticEffect.current?.play();
+      if (next !== currentRef.current) {
+        let steps = channels.indexOf(next) - channels.indexOf(currentRef.current);
+        if (steps === -3) steps = 1;
+        if (steps === 3) steps = -1;
+        setDialAngle((angle) => angle + steps * 90);
+        playMechanicalClick();
+        if (powered) staticEffect.current?.play();
+      }
       currentRef.current = next;
       setCurrent(next);
       if (!powered) setPhase("opening");
       if (writeHash && location.hash !== `#${next}`) location.hash = next;
     },
-    [powered],
+    [powered, playMechanicalClick],
   );
   useEffect(() => {
     const hashChange = () => {
@@ -195,7 +227,8 @@ export default function Television() {
           gain = context.createGain();
         gain.gain.value = 0;
         gain.connect(context.destination);
-        [130.81, 196, 261.63].forEach((frequency) => {
+        // A quiet transformer hum, enabled only by the listener.
+        [50, 100].forEach((frequency) => {
           const oscillator = context.createOscillator();
           oscillator.frequency.value = frequency;
           oscillator.connect(gain);
@@ -232,241 +265,272 @@ export default function Television() {
           <p>{t.intro}</p>
           <span className="intro-en">GOOD IDEAS ON AIR</span>
         </div>
-        <section className="tv-stage" aria-label={t.tv}>
+        <section className="tv-stage" aria-label={t.tv} data-powered={powered}>
           <div className="tv-aerial" aria-hidden="true">
             <i />
             <i />
             <b />
           </div>
-          <div className="television glass" id="television" tabIndex={-1}>
+          <div className="television" id="television" tabIndex={-1}>
+            <div className="cabinet-vents" aria-hidden="true" />
+            <i className="cabinet-screw screw-left" aria-hidden="true" />
+            <i className="cabinet-screw screw-right" aria-hidden="true" />
             <div className="tv-topline">
               <span>CV404 TV</span>
-              <span>INDEPENDENT CREATOR TELEVISION</span>
-              <span className="tiny-signal">▂▃▅▇</span>
+              <span>SOLID STATE · COLOR RECEIVER</span>
+              <span className="tiny-signal">VHF / UHF</span>
             </div>
             <div className="tv-main">
-              <div
-                className={`screen${powered ? "" : " is-off"}${transitional ? " power-transition" : ""}`}
-                id="screen"
-                data-channel={current}
-              >
-                <canvas
-                  ref={snow}
-                  id="channel-snow"
-                  className="channel-snow"
-                  width="224"
-                  height="128"
-                  aria-hidden="true"
-                  hidden
-                />
+              <div className="picture-surround">
                 <div
-                  ref={picture}
-                  className="broadcast-picture"
-                  id="broadcast-picture"
-                  hidden={phase === "off"}
-                  inert={!powered}
-                  aria-hidden={!powered}
+                  className={`screen${powered ? "" : " is-off"}${transitional ? " power-transition" : ""}`}
+                  id="screen"
+                  data-channel={current}
                 >
-                  <div className="screen-landscape" aria-hidden="true">
-                    <div className="sun" />
-                    <div className="mountain mountain-back" />
-                    <div className="mountain mountain-front" />
-                    <div className="screen-grain" />
-                  </div>
-                  <div className="screen-top">
-                    <span id="channel-label">
-                      CH.0{channels.indexOf(current) + 1} /{" "}
-                      {t.channels[channels.indexOf(current)]}
-                    </span>
-                    <span className="screen-status">
-                      <i /> {t.brand} TV
-                    </span>
-                  </div>
-                  <div className="channel-panel" {...panelProps("home")}>
-                    <div className="hero-content">
-                      <span className="eyebrow">
-                        A PLACE FOR PEOPLE WHO MAKE.
-                      </span>
-                      <h1>
-                        {t.hero[0]}
-                        <br />
-                        {t.hero[1]} <em>404.</em>
-                      </h1>
-                      <p>
-                        {t.heroBody[0]}
-                        <br />
-                        {t.heroBody[1]}
-                      </p>
-                      <button
-                        className="screen-cta"
-                        onClick={() => selectChannel("works")}
-                      >
-                        <span className="play-icon">▶</span>
-                        {t.heroCta}
-                        <span>↗</span>
-                      </button>
-                    </div>
-                    <div className="glass-art" aria-hidden="true">
-                      <div className="art-orbit orbit-one" />
-                      <div className="art-orbit orbit-two" />
-                      <span className="art-number">404</span>
-                      <div className="art-spark">✳</div>
-                      <span className="art-caption">
-                        IDEAS FOUND.
-                        <br />
-                        MADE IN YUNGU.
-                      </span>
-                    </div>
-                    <div className="screen-bottom">
-                      <span>BUILD. PITCH. SHIP. SHOW.</span>
-                      <span>
-                        {t.motto} <i>↗</i>
-                      </span>
-                    </div>
-                  </div>
+                  <div className="crt-surface" aria-hidden="true" />
+                  <canvas
+                    ref={snow}
+                    id="channel-snow"
+                    className="channel-snow"
+                    width="224"
+                    height="128"
+                    aria-hidden="true"
+                    hidden
+                  />
                   <div
-                    className="channel-panel content-panel"
-                    {...panelProps("works")}
+                    ref={picture}
+                    className="broadcast-picture"
+                    id="broadcast-picture"
+                    hidden={phase === "off"}
+                    inert={!powered}
+                    aria-hidden={!powered}
                   >
-                    <span className="eyebrow">{t.worksLabel}</span>
-                    <h2>
-                      <SplitTitle lines={t.worksTitle} />
-                    </h2>
-                    <p className="panel-lede">{t.worksBody}</p>
-                    <div className="work-slots">
-                      {t.steps.map(([title, body], i) => (
-                        <div key={i}>
-                          <span>
-                            0{i + 1} / {["BUILD", "PITCH", "SHIP"][i]}
-                          </span>
-                          <h3>{title}</h3>
-                          <p>{body}</p>
-                        </div>
-                      ))}
+                    <div className="screen-landscape" aria-hidden="true">
+                      <div className="sun" />
+                      <div className="mountain mountain-back" />
+                      <div className="mountain mountain-front" />
+                      <div className="screen-grain" />
                     </div>
-                    <div className="panel-action">
-                      <button className="screen-cta" onClick={join}>
-                        {t.worksCta}
-                        <span>↗</span>
-                      </button>
-                      <span className="quiet-note">{t.worksNote}</span>
+                    <div className="screen-top">
+                      <span id="channel-label">
+                        CH.0{channels.indexOf(current) + 1} /{" "}
+                        {t.channels[channels.indexOf(current)]}
+                      </span>
+                      <span className="screen-status">
+                        <i /> {t.brand} TV
+                      </span>
                     </div>
-                  </div>
-                  <div
-                    className="channel-panel content-panel"
-                    {...panelProps("events")}
-                  >
-                    <span className="eyebrow">{t.eventsLabel}</span>
-                    <div className="event-layout">
-                      <div>
-                        <span className="archive-label">{t.archive}</span>
-                        <h2>
-                          <SplitTitle lines={t.eventTitle} />
-                        </h2>
-                        <p className="panel-lede">{t.eventBody}</p>
-                        <p className="event-meta">
-                          08.29 · 14:00—16:00
-                          <br />
-                          {t.venue}
-                        </p>
-                        <Link className="screen-cta" href="/guide">
-                          {t.eventCta}
-                          <span>↗</span>
-                        </Link>
-                      </div>
-                      <a
-                        className="event-poster"
-                        href="/assets/event-poster.png"
-                        target="_blank"
-                        rel="noopener"
-                        aria-label={t.poster}
-                      >
-                        <img
-                          src="/assets/event-poster.png"
-                          alt={t.posterAlt}
-                          loading="lazy"
-                        />
-                        <span>
-                          VOL.001 <span>{t.poster} ↗</span>
+                    <div className="channel-panel" {...panelProps("home")}>
+                      <div className="hero-content">
+                        <span className="eyebrow">
+                          A PLACE FOR PEOPLE WHO MAKE.
                         </span>
-                      </a>
+                        <h1>
+                          {t.hero[0]}
+                          <br />
+                          {t.hero[1]} <em>404.</em>
+                        </h1>
+                        <p>
+                          {t.heroBody[0]}
+                          <br />
+                          {t.heroBody[1]}
+                        </p>
+                        <button
+                          className="screen-cta"
+                          onClick={() => selectChannel("works")}
+                        >
+                          <span className="play-icon">▶</span>
+                          {t.heroCta}
+                          <span>↗</span>
+                        </button>
+                      </div>
+                      <div className="glass-art" aria-hidden="true">
+                        <div className="art-orbit orbit-one" />
+                        <div className="art-orbit orbit-two" />
+                        <span className="art-number">404</span>
+                        <div className="art-spark">✳</div>
+                        <span className="art-caption">
+                          IDEAS FOUND.
+                          <br />
+                          MADE IN YUNGU.
+                        </span>
+                      </div>
+                      <div className="screen-bottom">
+                        <span>BUILD. PITCH. SHIP. SHOW.</span>
+                        <span>
+                          {t.motto} <i>↗</i>
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      className="channel-panel content-panel"
+                      {...panelProps("works")}
+                    >
+                      <span className="eyebrow">{t.worksLabel}</span>
+                      <h2>
+                        <SplitTitle lines={t.worksTitle} />
+                      </h2>
+                      <p className="panel-lede">{t.worksBody}</p>
+                      <div className="work-slots">
+                        {t.steps.map(([title, body], i) => (
+                          <div key={i}>
+                            <span>
+                              0{i + 1} / {["BUILD", "PITCH", "SHIP"][i]}
+                            </span>
+                            <h3>{title}</h3>
+                            <p>{body}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="panel-action">
+                        <button className="screen-cta" onClick={join}>
+                          {t.worksCta}
+                          <span>↗</span>
+                        </button>
+                        <span className="quiet-note">{t.worksNote}</span>
+                      </div>
+                    </div>
+                    <div
+                      className="channel-panel content-panel"
+                      {...panelProps("events")}
+                    >
+                      <span className="eyebrow">{t.eventsLabel}</span>
+                      <div className="event-layout">
+                        <div>
+                          <span className="archive-label">{t.archive}</span>
+                          <h2>
+                            <SplitTitle lines={t.eventTitle} />
+                          </h2>
+                          <p className="panel-lede">{t.eventBody}</p>
+                          <p className="event-meta">
+                            08.29 · 14:00—16:00
+                            <br />
+                            {t.venue}
+                          </p>
+                          <Link className="screen-cta" href="/guide">
+                            {t.eventCta}
+                            <span>↗</span>
+                          </Link>
+                        </div>
+                        <a
+                          className="event-poster"
+                          href="/assets/event-poster.png"
+                          target="_blank"
+                          rel="noopener"
+                          aria-label={t.poster}
+                        >
+                          <img
+                            src="/assets/event-poster.png"
+                            alt={t.posterAlt}
+                            loading="lazy"
+                          />
+                          <span>
+                            VOL.001 <span>{t.poster} ↗</span>
+                          </span>
+                        </a>
+                      </div>
+                    </div>
+                    <div
+                      className="channel-panel content-panel"
+                      {...panelProps("about")}
+                    >
+                      <span className="eyebrow">{t.aboutLabel}</span>
+                      <h2>
+                        <SplitTitle lines={t.aboutTitle} />
+                      </h2>
+                      <p className="panel-lede">{t.aboutBody}</p>
+                      <div className="about-line">
+                        <span>⌖ {t.roots}</span>
+                        <span>↗ {t.makers}</span>
+                      </div>
+                      <button className="screen-cta" onClick={join}>
+                        {t.aboutCta}
+                        <span>↗</span>
+                      </button>
                     </div>
                   </div>
-                  <div
-                    className="channel-panel content-panel"
-                    {...panelProps("about")}
-                  >
-                    <span className="eyebrow">{t.aboutLabel}</span>
-                    <h2>
-                      <SplitTitle lines={t.aboutTitle} />
-                    </h2>
-                    <p className="panel-lede">{t.aboutBody}</p>
-                    <div className="about-line">
-                      <span>⌖ {t.roots}</span>
-                      <span>↗ {t.makers}</span>
-                    </div>
-                    <button className="screen-cta" onClick={join}>
-                      {t.aboutCta}
-                      <span>↗</span>
+                  <div className="standby" id="standby" hidden={phase !== "off"}>
+                    <span aria-hidden="true" className="glass-reflection" />
+                    <button
+                      className="screen-cta"
+                    id="power-on"
+                    onClick={() => {
+                      playMechanicalClick();
+                      setPhase("opening");
+                        tabs.current[channels.indexOf(current)]?.focus({
+                          preventScroll: true,
+                        });
+                      }}
+                    >
+                      {t.powerOn}
+                      <span>⏻</span>
                     </button>
                   </div>
                 </div>
-                <div className="standby" id="standby" hidden={phase !== "off"}>
-                  <span>CV404</span>
-                  <p>{t.standby}</p>
-                  <button
-                    className="screen-cta"
-                    id="power-on"
-                    onClick={() => {
-                      setPhase("opening");
-                      tabs.current[channels.indexOf(current)]?.focus({
-                        preventScroll: true,
-                      });
-                    }}
-                  >
-                    {t.powerOn}
-                    <span>⏻</span>
-                  </button>
-                </div>
               </div>
               <aside className="tv-controls" aria-label={t.controls}>
-                <button
-                  className="power-button control-button"
-                  id="power"
-                  aria-label={powered ? t.powerOff : t.powerOn}
-                  aria-pressed={powered}
-                  onClick={() => setPhase(powered ? "closing" : "opening")}
-                >
-                  <PowerIcon />
-                </button>
-                <span className={`power-led${powered ? "" : " off"}`} />
-                <div className="control-divider" />
-                <span className="control-label">CHANNEL</span>
-                <button
-                  className="channel-knob"
-                  id="next-channel"
-                  aria-label={t.next}
-                  style={{
-                    "--knob-angle": `${channels.indexOf(current) * 90 - 35}deg`,
-                  }}
-                  onClick={() =>
-                    selectChannel(channels[(channels.indexOf(current) + 1) % 4])
-                  }
-                >
-                  <span />
-                </button>
-                <span className="knob-caption">{t.knob}</span>
+                <div className="tuner-control">
+                  <span className="control-label">CHANNEL</span>
+                  <div className="tuner-scale">
+                    <div className="dial-numbers" aria-hidden="true">
+                      {[1, 2, 3, 4].map((number) => (
+                        <i key={number}>{number}</i>
+                      ))}
+                    </div>
+                    <button
+                      className="channel-knob"
+                      id="next-channel"
+                      aria-label={t.next}
+                      style={{ "--knob-angle": `${dialAngle}deg` }}
+                      onClick={() =>
+                        selectChannel(channels[(channels.indexOf(current) + 1) % 4])
+                      }
+                    >
+                      <span />
+                    </button>
+                  </div>
+                  <span className="knob-caption">{t.knob}</span>
+                </div>
+                <div className="volume-control">
+                  <span className="control-label">SOUND</span>
+                  <button
+                    className="volume-knob"
+                    aria-label={sound ? t.soundOff : t.soundOn}
+                    aria-pressed={sound}
+                    onClick={toggleSound}
+                  >
+                    <span />
+                  </button>
+                  <span className="volume-scale" aria-hidden="true">OFF · ON</span>
+                </div>
+                <div className="power-control">
+                  <button
+                    className="power-button control-button"
+                    id="power"
+                    aria-label={powered ? t.powerOff : t.powerOn}
+                    aria-pressed={powered}
+                    onClick={() => {
+                      playMechanicalClick();
+                      setPhase(powered ? "closing" : "opening");
+                    }}
+                  >
+                    <PowerIcon />
+                  </button>
+                  <span
+                    className={`power-led${powered ? "" : " off"}`}
+                    aria-hidden="true"
+                  />
+                  <span className="control-label">POWER</span>
+                </div>
                 <div className="speaker" aria-hidden="true" />
                 <span className="tv-model">
-                  MODEL
-                  <br />
-                  404—01
+                  CV404 <b>DELUXE</b>
                 </span>
               </aside>
             </div>
             <div className="tv-chin">
               <span>
-                <i /> MADE FOR THE MAKERS
+                <i /> CV404 · SOLID STATE
               </span>
               <span>
                 {t.brand} <b>STEREO</b>

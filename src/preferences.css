@@ -93,7 +93,7 @@ html[data-theme="light"] .ambience > i:nth-child(2) {
 html[data-theme="light"] .floor-grid {
   opacity: 0.25;
 }
-/* A bright rim and a shaded lower edge make clear glass visible on pale paper. */
+/* Page chrome adapts to the theme; the television keeps its physical materials. */
 html[data-theme="light"] .glass {
   backdrop-filter: blur(20px) saturate(155%);
   -webkit-backdrop-filter: blur(20px) saturate(155%);
@@ -106,37 +106,6 @@ html[data-theme="light"] .glass {
 }
 html[data-theme="light"] .preference-controls {
   background: linear-gradient(135deg, #ffffffb3, #ffffff24 55%, #a4aba329);
-}
-html[data-theme="light"] .television {
-  background:
-    radial-gradient(ellipse at var(--light-x) var(--light-y), #ffffff80, transparent 58%),
-    linear-gradient(125deg, #ffffffa6, #81948e33 24%, #ffffff26 43%, #ffffff94 66%, #b5aaa044 84%, #ffffff66);
-  border-color: #7c857c80;
-  box-shadow:
-    inset 0 3px 2px #fff,
-    inset 3px 0 3px #ffffffb3,
-    inset -2px -3px 3px #626c6166,
-    inset 0 0 18px #ffffff4d,
-    0 18px 40px -18px #514b3d52,
-    0 3px 8px #514b3d14;
-}
-html[data-theme="light"] .television::before {
-  padding: 2px;
-  border-color: #ffffff66;
-  background:
-    radial-gradient(ellipse at var(--light-x) var(--light-y), #fff, transparent 70%),
-    linear-gradient(135deg, #ffffffcc, #697a7059 38%, #ffffffd9 68%, #697a7066);
-}
-html[data-theme="light"] .television::after {
-  /* Keep reflected light on the shell so it cannot wash out screen content. */
-  inset: 1px;
-  padding: 10px;
-  background: linear-gradient(115deg, transparent 8%, #ffffffa6 22%, transparent 35%, transparent 62%, #ffffff80 76%, transparent 90%);
-  mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  -webkit-mask-composite: xor;
 }
 html[data-theme="light"] .channel-dock {
   background: linear-gradient(130deg, #ffffffb3, #ffffff33 45%, #b2b9ad33 75%, #ffffff80);
@@ -164,14 +133,7 @@ html[data-theme="light"] .channel-tabs button[aria-selected="true"] > span {
 html[data-theme="light"] .header-location,
 html[data-theme="light"] .join-button span,
 html[data-theme="light"] .intro-en,
-html[data-theme="light"] .tv-topline,
-html[data-theme="light"] .tv-topline > span:first-child,
-html[data-theme="light"] .tv-chin,
-html[data-theme="light"] .tv-chin > span:last-child,
 html[data-theme="light"] .control-button,
-html[data-theme="light"] .control-label,
-html[data-theme="light"] .knob-caption,
-html[data-theme="light"] .tv-model,
 html[data-theme="light"] .dock-label > span,
 html[data-theme="light"] .dock-label small,
 html[data-theme="light"] .under-dock,
@@ -179,39 +141,11 @@ html[data-theme="light"] .site-footer,
 html[data-theme="light"] .site-footer > span:nth-child(2) {
   color: #5c6159;
 }
-html[data-theme="light"] .tv-chin b,
 html[data-theme="light"] .dock-label,
 html[data-theme="light"] .sound-button,
 html[data-theme="light"] .keyboard-hint,
 html[data-theme="light"] .site-footer {
   border-color: #22272a26;
-}
-html[data-theme="light"] .power-button,
-html[data-theme="light"] .channel-knob {
-  border-color: #22272a33;
-  box-shadow:
-    inset 0 2px 2px #fff,
-    inset 0 -2px 2px #68706459,
-    0 3px 6px #514b3d1f;
-}
-html[data-theme="light"] .tv-aerial i {
-  background: linear-gradient(90deg, #7c857c66, #fff, #7c857c99);
-}
-html[data-theme="light"] .tv-aerial b {
-  border-color: #7c857c66;
-  background: linear-gradient(135deg, #ffffff99, #84908333);
-}
-html[data-theme="light"] .control-divider {
-  background: #22272a26;
-}
-html[data-theme="light"] .tv-stand i {
-  background: linear-gradient(90deg, #bcb3a03b, #ffffffa0, #aaa08a3b);
-  border-color: #8a806b50;
-}
-html[data-theme="light"] .tv-stand b {
-  background: linear-gradient(#fff9, #aa9d8144);
-  border-color: #8a806b50;
-  box-shadow: inset 0 1px 1px #fff, 0 4px 6px #514b3d26;
 }
 html[data-theme="light"] .join-dialog {
   color: #22272a;

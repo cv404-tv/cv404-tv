@@ -3,6 +3,7 @@ import "../src/guide.css";
 import "../src/tv-effects.css";
 import "../src/preferences.css";
 import "../src/tier-list.css";
+import "../src/television.css";
 import { PreferencesProvider } from "../components/preferences";
 
 export const metadata = {
