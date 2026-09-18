@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { BrandMark } from "./brand-mark";
 import { PreferenceControls, usePreferences } from "./preferences";
+import { AccountButton } from "./auth";
 
 export function Backdrop() {
   return (
@@ -13,7 +14,7 @@ export function Backdrop() {
     </div>
   );
 }
-export function Header({ onHome, guide = false, tool = false }) {
+export function Header({ guide = false, tool = false, game = false }) {
   const { t, locale } = usePreferences();
   return (
     <header className="site-header">
@@ -21,14 +22,6 @@ export function Header({ onHome, guide = false, tool = false }) {
         className="brand"
         href="/"
         aria-label={t.home}
-        onClick={
-          onHome
-            ? (event) => {
-                event.preventDefault();
-                onHome();
-              }
-            : undefined
-        }
       >
         <BrandMark />
         <span>
@@ -42,8 +35,12 @@ export function Header({ onHome, guide = false, tool = false }) {
         </span>
       )}
       <div className="header-actions">
-        {guide && <Link className="site-back-link" href="/#events">{t.back}</Link>}
+        {guide && <Link className="site-back-link" href="/events">{t.back}</Link>}
         <PreferenceControls />
+        <AccountButton />
+        <Link className="header-game-link" href={game ? "/events" : "/"}>
+          {game ? (locale === "zh" ? "黑客松活动" : "Events") : (locale === "zh" ? "搜寻信号" : "Signal Search")} ↗
+        </Link>
         {!tool && <Link className="glass join-button" href="/tier">
           {t.rate} <span aria-hidden="true">↗</span>
         </Link>}
@@ -57,6 +54,8 @@ export function Footer() {
     <footer className="site-footer">
       <span>© {new Date().getFullYear()} {t.brand}</span>
       <span>{t.footer}</span>
+      <Link href="/">{locale === "zh" ? "404 信号搜寻" : "404 Signal Search"} ↗</Link>
+      <Link href="/events">{locale === "zh" ? "黑客松活动" : "Hackathon events"} ↗</Link>
       <Link href="/tier">{locale === "zh" ? "锐评小工具" : "Hot Take Tool"} ↗</Link>
       <Link href="/guide">{t.guideLink} ↗</Link>
     </footer>

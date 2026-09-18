@@ -13,7 +13,7 @@ import { initTVEffects } from "../src/tv-effects";
 import { createStaticEffect } from "../lib/static-effect";
 
 const channels = ["home", "works", "events", "about"];
-const normalize = (value) => (channels.includes(value) ? value : "home");
+const normalize = (value) => (channels.includes(value) ? value : "events");
 function PowerIcon() {
   return (
     <svg
@@ -38,10 +38,10 @@ function SplitTitle({ lines }) {
 }
 
 export default function Television() {
-  const { t } = usePreferences();
-  const [current, setCurrent] = useState("home");
-  const [dialAngle, setDialAngle] = useState(-45);
-  const [phase, setPhase] = useState("off");
+  const { t, locale } = usePreferences();
+  const [current, setCurrent] = useState("events");
+  const [dialAngle, setDialAngle] = useState(135);
+  const [phase, setPhase] = useState("on");
   const [reduced, setReduced] = useState(false);
   const [sound, setSound] = useState(false);
   const [audioError, setAudioError] = useState(false);
@@ -63,6 +63,7 @@ export default function Television() {
     const initialChannel = normalize(location.hash.slice(1));
     setCurrent(initialChannel);
     setDialAngle(channels.indexOf(initialChannel) * 90 - 45);
+    if (channels.includes(location.hash.slice(1))) setPhase("on");
     const media = matchMedia("(prefers-reduced-motion: reduce)");
     setReduced(media.matches);
     const motionChange = () => {
@@ -258,12 +259,13 @@ export default function Television() {
         {t.skip}
       </a>
       <Backdrop />
-      <Header onHome={() => selectChannel("home")} />
+      <Header />
       <main>
+        <h1 className="sr-only">{locale === "zh" ? "云谷404迷你黑客松活动" : "Cloud Valley 404 Mini Hackathon"}</h1>
         <div className="intro">
           <span className="broadcast-dot" />
-          <p>{t.intro}</p>
-          <span className="intro-en">GOOD IDEAS ON AIR</span>
+          <p>{locale === "zh" ? "云谷404迷你黑客松" : "Cloud Valley 404 Mini Hackathon"}</p>
+          <span className="intro-en">BUILD SOMETHING TOGETHER</span>
         </div>
         <section className="tv-stage" aria-label={t.tv} data-powered={powered}>
           <div className="tv-aerial" aria-hidden="true">
@@ -595,6 +597,11 @@ export default function Television() {
           </p>
           <span>{t.curious}</span>
         </div>
+        <Link className="home-signal-link" href="/">
+          <strong>404 →</strong>
+          <span>{locale === "zh" ? "从噪声里，找到一个好故事。" : "Find a good story in the noise."}<small>{locale === "zh" ? "信号搜寻 · 40.4 秒 · 三个失联频道" : "SIGNAL SEARCH · 40.4 SEC · THREE LOST CHANNELS"}</small></span>
+          <b aria-hidden="true">↗</b>
+        </Link>
         <div className="home-join">
           <p>{t.motto}</p>
           <button className="glass join-button" onClick={join} aria-haspopup="dialog">

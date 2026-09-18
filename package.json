@@ -10,11 +10,12 @@
     "build": "next build && node scripts/postbuild.mjs",
     "preview": "wrangler dev --port 8787",
     "dev:worker": "npm run build && wrangler dev --port 8787",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "node scripts/check-auth-deploy.mjs && npm run build && wrangler deploy",
     "deploy:check": "npm run build && wrangler deploy --dry-run"
   },
   "devDependencies": {
-    "wrangler": "^4.0.0"
+    "wrangler": "^4.0.0",
+    "miniflare": "5.20260911.1-alpha"
   },
   "dependencies": {
     "next": "^16.3.5",

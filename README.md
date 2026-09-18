@@ -1,6 +1,6 @@
 # 云谷404 TV
 
-基于 **Next.js App Router + React + Three.js** 的云谷404官网。首页采用木纹 CRT 电视：厚机箱、金属面板、内凹屏幕边框、曲面玻璃反射、机械旋钮、扬声器格栅和脚座。默认关机，支持频道切换、随机雪花、亮线开关机动画、鼠标视差和立体 404。
+基于 **Next.js App Router + React + Three.js** 的云谷404官网。首页为「404 信号搜寻」游戏，活动页保留木纹 CRT 电视：厚机箱、金属面板、内凹屏幕边框、曲面玻璃反射、机械旋钮、扬声器格栅和脚座。活动页默认开机展示黑客松活动频道，支持频道切换、随机雪花、亮线开关机动画、鼠标视差和立体 404。
 
 ## 开发与构建
 
@@ -25,13 +25,35 @@ npm run deploy
 
 Worker 名称 `cv404-tv`，自定义域名 `cv404.tv`，资产目录 `out/`。正式发布使用管理该域名的 Cloudflare 账户。Workers Builds 可配置构建命令 `npm run build`，部署命令 `npx wrangler deploy`。
 
-页面继续使用 Next.js 官方静态导出。`worker/index.js` 单独处理 `/api/*`，用 Cloudflare SQLite Durable Objects 保存匿名白板快照，其余请求走静态资产。没有用户登录或投稿接收接口。未来使用 Next.js Server Actions、运行时服务端渲染、Cookie 会话或 API Route 时，仍需配置 Next.js 服务端适配方案。
+页面继续使用 Next.js 官方静态导出。`worker/index.js` 单独处理 `/api/*`，用 Cloudflare SQLite Durable Objects 保存匿名白板快照，用 D1 保存邮箱账户和登录会话，其余请求走静态资产。Cookie 会话由独立 Worker 管理，不需要 Next.js 服务端适配；未来使用 Next.js Server Actions、运行时服务端渲染或动态 Route Handlers 时，才需要服务端适配方案。
 
-路由：`/` 是电视首页，`/guide` 是创作指南，`/tier` 是「锐评小工具」（从夯到拉排名玩法）；`/tier?share=<UUID>` 展示只读分享版本。旧的 `/tier-list`（包括分享参数）永久重定向到 `/tier`；`/guide.html` 保留为静态文件入口，便于旧链接继续访问；不存在的页面返回 404。Next.js 的 `_next/` 资源及路由载荷一同发布，支持 App Router 页面跳转。
+## 邮箱账户
+
+页头「登录」通过 6 位邮箱验证码完成登录；首次验证自动注册。支持 30 天登录状态、昵称修改、退出当前设备和退出所有设备，中英文与日夜主题共用现有设置。游客仍可玩游戏、制作和分享锐评；登录不会自动同步本地草稿或认领历史匿名链接。
+
+`worker/auth.js` 负责认证，`migrations/0001_auth.sql` 定义账户、挑战、会话和限额表。验证码 10 分钟有效、最多 5 次尝试、绑定发起浏览器；D1 事务保证并发校验不能重复使用。验证码存 HMAC，随机会话令牌仅存 SHA-256 摘要，生产 Cookie 为 `__Host-`、HttpOnly、Secure、SameSite=Lax。身份查询走 D1 主库，不缓存；每小时清理过期记录。
+
+本地先执行 `npx wrangler d1 migrations apply AUTH_DB --local`，在忽略提交的 `.dev.vars` 中配置至少 32 字符的随机 `AUTH_SECRET`，再 build + preview。本地 `EMAIL` binding 捕获邮件而不实际发送；终端显示模拟邮件正文文件路径。`npm run dev` 只运行前端，登录验证需要 Workers preview。
+
+生产数据库 `cv404-accounts` 已创建并填入配置；生产还需 `AUTH_SECRET` secret 和 Cloudflare Email Sending 域名开通。具体步骤和接口约定见 [账户部署说明](docs/email-auth.md)。
+
+路由：`/` 是游戏首页，`/events` 是黑客松活动电视页，`/signal` 保留为游戏兼容入口（canonical 指向 `/`），`/guide` 是创作指南，`/tier` 是「锐评小工具」（从夯到拉排名玩法）；`/tier?share=<UUID>` 展示只读分享版本。旧的 `/tier-list`（包括分享参数）永久重定向到 `/tier`；`/guide.html` 保留为静态文件入口，便于旧链接继续访问；不存在的页面返回 404。Next.js 的 `_next/` 资源及路由载荷一同发布，支持 App Router 页面跳转。
+
+## 404 信号搜寻
+
+`/` 是沿用 CRT 电视外壳的调频小游戏，旧 `/signal` 仍可访问。活动页电视下方、页头及共享页脚提供首页入口，支持中英文与日夜主题。
+
+- 40.4 秒内捕获三个频道：固定频率、缓慢漂移、漂移加周期性干扰。接近目标后累计锁定 1.5 秒；偏离时进度缓慢回退，干扰期间冻结进度。每次捕获后暂停计时，玩家读完再进入下一关。
+- 旋钮支持指针拖动、方向键微调、Page Up/Down 快调和 Home/End；原生滑杆提供另一种调频方式。声音默认关闭，可手动打开轻量 Web Audio 提示音。
+- 手动暂停、页面隐藏或游戏机离开视口时暂停；回到页面后由玩家恢复。减少动态效果偏好下去除雪花变化和动态波形。Canvas 不可用时仍可通过文字与信号条完成游戏。
+- 通关生成 1080×1440 PNG 分享卡，支持预览、下载和长按保存；挑战链接与分享卡指向当前部署的 `/`。本机最高分保存在 `cv404-signal-best-001`，无登录、网络排行榜或新后端依赖。
+- 本期频道对应已有的作品频道、第一期活动和创作指南，随时可以阅读。活动页收到有效频道 hash（如 `/events#works`）时显示对应内容，普通 `/events` 默认开机展示黑客松活动频道。
+- `lib/signal-game.js` 管理纯游戏规则，`lib/signal-copy.js` 管理双语内容，`lib/signal-card.js` 生成分享卡，`components/signal-game.jsx` 管理交互与生命周期，`src/signal-game.css` 管理游戏布局。更换主题时同步更新三处频道内容及 `ISSUE`，避免旧最高分混入新一期。
+- `npm test` 覆盖三关捕获、超时、干扰、锁定回退、关间暂停、重玩及输入边界。
 
 ## 锐评小工具
 
-其他页面右上角「锐评一下」进入 `/tier`，锐评页面自身隐藏此入口；首页「一起做点东西」移至电视与频道切换区下方，继续打开参与说明弹框。
+其他页面右上角「锐评一下」进入 `/tier`，锐评页面自身隐藏此入口；活动页「一起做点东西」位于电视与频道切换区下方，打开参与说明弹框。
 
 - 首个默认分类是「Logo 贴纸」，合并品牌预设和自定义上传：顶部的「自定义 Logo」入口打开上传弹框，支持选填名称、格式与大小校验、成功后自动关闭；第二个分类是「文字贴纸」。预设第一项是云谷404（复用 `public/assets/brand-header.svg`），随后是 14 个模型品牌：DeepSeek、千问、豆包、智谱、Claude、ChatGPT、Gemini、Grok、Kimi、MiniMax、文心一言、腾讯混元、讯飞星火、Mistral。每项使用 SVG Logo＋名称，AI 品牌素材来自 Lobe Icons，已固定版本保存在 `public/assets/ai-logos/`，附来源和授权文件。LLaMA、Gemma 已从选择列表移除；兼容已有草稿与分享。用户只能选用；系统目录位于 `lib/ai-stickers.js` 的 `LOGO_STICKERS`，不提供公开增删改接口。预设沿用 `type: "ai"` 存储格式，兼容已有草稿与分享。服务端通过 `presetId` 还原名称与样式，忽略客户端的外观覆盖。修改已有贴纸时使用新的版本 ID，并保留旧定义，确保已分享快照不变。
 - 五档白板，文字贴纸支持六种底色；Logo 支持 PNG / JPEG / WebP（单文件最多 500 KB，每块白板最多 6 个自定义 Logo），在浏览器中缩小到最长边 256 px 后保存，不上传原图。不调用 AI 图片生成服务。前端先限制原文件大小和数量，分享 API 再校验自定义 Logo 数量。
@@ -52,11 +74,11 @@ Worker 名称 `cv404-tv`，自定义域名 `cv404.tv`，资产目录 `out/`。�
 - 中文为默认语言；主题首次跟随系统，手动选择后记住偏好。
 - `cv404-language` 和 `cv404-theme` 保存在浏览器本地；存储不可用时仍可切换。
 - 翻译覆盖四个频道、控制按钮、参与说明、指南及 404 页面。品牌名称随语言切换：中文为“云谷404”，英文为“Cloud Valley 404”；海报和原始指南是中文历史材料，英文页面已标注。
-- 切换语言或主题不会重置当前电视频道与电源；重新加载或重新进入首页时默认关机。
+- 切换语言或主题不会重置当前电视频道与电源；活动页默认开机展示黑客松活动频道，频道深链接直接展示对应内容。
 
 ## 代码组织
 
-- `app/`：Next.js 布局、首页、指南和 404 路由。
+- `app/`：Next.js 布局、游戏首页、活动页、指南和 404 路由。
 - `components/television.jsx`：电视 React 状态、频道内容、开关机和音频生命周期。
 - `components/preferences.jsx`：共享语言／主题状态及切换控件。
 - `components/site-shell.jsx`、`components/guide.jsx`：共享页头页脚和指南。

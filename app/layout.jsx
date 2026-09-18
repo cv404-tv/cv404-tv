@@ -4,7 +4,10 @@ import "../src/tv-effects.css";
 import "../src/preferences.css";
 import "../src/tier-list.css";
 import "../src/television.css";
+import "../src/signal-game.css";
+import "../src/auth.css";
 import { PreferencesProvider } from "../components/preferences";
+import { AuthProvider } from "../components/auth";
 
 export const metadata = {
   metadataBase: new URL("https://cv404.tv"),
@@ -28,7 +31,7 @@ export default function RootLayout({ children }) {
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
-        <PreferencesProvider>{children}</PreferencesProvider>
+        <PreferencesProvider><AuthProvider>{children}</AuthProvider></PreferencesProvider>
       </body>
     </html>
   );

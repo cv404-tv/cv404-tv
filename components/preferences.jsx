@@ -50,7 +50,11 @@ export function PreferencesProvider({ children }) {
   }, [theme, ready]);
   useEffect(() => {
     document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
-    document.title = pathname.startsWith("/tier")
+    document.title = pathname === "/" || pathname.startsWith("/signal")
+      ? locale === "zh" ? "404 信号搜寻 · 云谷404" : "404 Signal Search · Cloud Valley 404"
+      : pathname.startsWith("/events")
+        ? locale === "zh" ? "黑客松活动 · 云谷404" : "Hackathon Events · Cloud Valley 404"
+      : pathname.startsWith("/tier")
       ? locale === "zh" ? "锐评小工具 · 云谷404" : "Hot Take Tool · Cloud Valley 404"
       : pathname.startsWith("/guide")
         ? copy[locale].guideTitle

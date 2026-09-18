@@ -1,5 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import { MAX_BOARD_BYTES, normalizeBoard, SHARE_ID } from "../lib/tier-board.js";
+import { handleAuth, cleanupAuth } from "./auth.js";
 
 function json(body, status = 200, headers = {}) {
   return Response.json(body, { status, headers: {
@@ -46,8 +47,12 @@ async function readLimited(request) {
 }
 
 export default {
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(cleanupAuth(env));
+  },
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith("/api/auth/") || url.pathname === "/api/account") return handleAuth(request, env);
     if (url.pathname === "/tier-list" || url.pathname === "/tier-list/") {
       url.pathname = "/tier";
       return Response.redirect(url, 308);
