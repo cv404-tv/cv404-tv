@@ -30,6 +30,18 @@ export function normalizeEmail(value) {
 
 const hex = bytes => Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, '0')).join('');
 export const randomToken = () => hex(crypto.getRandomValues(new Uint8Array(32)));
+export function randomUserId() {
+  const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let id = '';
+  while (id.length < 8) {
+    for (const byte of crypto.getRandomValues(new Uint8Array(8))) {
+      // 252 is divisible by 36, so every character is equally likely.
+      if (byte < 252) id += alphabet[byte % alphabet.length];
+      if (id.length === 8) break;
+    }
+  }
+  return id;
+}
 export const digest = async value => hex(await crypto.subtle.digest('SHA-256', encoder.encode(value)));
 export async function hmac(secret, value) {
   const key = await crypto.subtle.importKey('raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
@@ -130,7 +142,7 @@ async function sendCode(request, env, body, now) {
   });
 }
 
-function publicUser(row) { return { id: row.id, email: row.email, nickname: row.nickname }; }
+function publicUser(row) { return { id: row.id, userId: row.public_id, email: row.email, nickname: row.nickname }; }
 
 async function verifyCode(request, env, body, now) {
   if (!TOKEN_PATTERN.test(body.challengeId || '') || !/^\d{6}$/.test(body.code || '')) throw new AuthError('invalid_code');
@@ -146,20 +158,29 @@ async function verifyCode(request, env, body, now) {
   const tokenHash = await digest(token);
   // One atomic D1 batch: only the request which claims this challenge can create a session.
   // A SELECT followed by an unconditional DELETE would permit concurrent code reuse.
-  const result = await env.AUTH_DB.batch([
-    env.AUTH_DB.prepare(`UPDATE login_challenges SET attempts = attempts + 1,
-      consumed_token = CASE WHEN code_hash = ? THEN ? ELSE NULL END
-      WHERE id = ? AND client_hash = ? AND ready = 1 AND consumed_token IS NULL AND expires_at > ? AND attempts < 5`
-    ).bind(codeHash, claim, body.challengeId, await digest(client), now),
-    env.AUTH_DB.prepare(`INSERT INTO users (id, email, email_verified_at, created_at)
-      SELECT ?, email, ?, ? FROM login_challenges WHERE id = ? AND consumed_token = ?
-      ON CONFLICT(email) DO NOTHING`).bind(crypto.randomUUID(), now, now, body.challengeId, claim),
-    env.AUTH_DB.prepare(`INSERT INTO sessions (token_hash, user_id, created_at, expires_at)
-      SELECT ?, u.id, ?, ? FROM users u JOIN login_challenges c ON c.email = u.email
-      WHERE c.id = ? AND c.consumed_token = ? AND u.status = 'active'`
-    ).bind(tokenHash, now, now + SESSION_TTL, body.challengeId, claim),
-    env.AUTH_DB.prepare(`SELECT u.id, u.email, u.nickname FROM users u JOIN sessions s ON s.user_id = u.id WHERE s.token_hash = ?`).bind(tokenHash),
-  ]);
+  let result;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      result = await env.AUTH_DB.batch([
+        env.AUTH_DB.prepare(`UPDATE login_challenges SET attempts = attempts + 1,
+          consumed_token = CASE WHEN code_hash = ? THEN ? ELSE NULL END
+          WHERE id = ? AND client_hash = ? AND ready = 1 AND consumed_token IS NULL AND expires_at > ? AND attempts < 5`
+        ).bind(codeHash, claim, body.challengeId, await digest(client), now),
+        env.AUTH_DB.prepare(`INSERT INTO users (id, public_id, email, email_verified_at, created_at)
+          SELECT ?, ?, email, ?, ? FROM login_challenges WHERE id = ? AND consumed_token = ?
+          ON CONFLICT(email) DO NOTHING`).bind(crypto.randomUUID(), randomUserId(), now, now, body.challengeId, claim),
+        env.AUTH_DB.prepare(`INSERT INTO sessions (token_hash, user_id, created_at, expires_at)
+          SELECT ?, u.id, ?, ? FROM users u JOIN login_challenges c ON c.email = u.email
+          WHERE c.id = ? AND c.consumed_token = ? AND u.status = 'active'`
+        ).bind(tokenHash, now, now + SESSION_TTL, body.challengeId, claim),
+        env.AUTH_DB.prepare(`SELECT u.id, u.public_id, u.email, u.nickname FROM users u JOIN sessions s ON s.user_id = u.id WHERE s.token_hash = ?`).bind(tokenHash),
+      ]);
+      break;
+    } catch (error) {
+      // D1 rolls back the whole batch, including the challenge claim, on collision.
+      if (!String(error.message).includes('UNIQUE constraint failed: users.public_id') || attempt === 4) throw error;
+    }
+  }
   const user = result[3].results[0];
   if (!user) throw new AuthError('invalid_code');
   const response = json({ user: publicUser(user) });
@@ -173,7 +194,7 @@ async function currentSession(request, env, now) {
   const token = cookie(request, 'session');
   if (!TOKEN_PATTERN.test(token)) return null;
   const hash = await digest(token);
-  const row = await env.AUTH_DB.prepare(`SELECT u.id, u.email, u.nickname FROM sessions s
+  const row = await env.AUTH_DB.prepare(`SELECT u.id, u.public_id, u.email, u.nickname FROM sessions s
     JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ? AND u.status = 'active'`).bind(hash, now).first();
   return row ? { ...row, tokenHash: hash } : null;
 }

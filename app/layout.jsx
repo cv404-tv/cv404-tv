@@ -6,6 +6,7 @@ import "../src/tier-list.css";
 import "../src/television.css";
 import "../src/signal-game.css";
 import "../src/auth.css";
+import "../src/header.css";
 import { PreferencesProvider } from "../components/preferences";
 import { AuthProvider } from "../components/auth";
 

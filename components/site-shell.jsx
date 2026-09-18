@@ -34,16 +34,18 @@ export function Header({ guide = false, tool = false, game = false }) {
           <span className="location-cross">⌖</span> {t.location}
         </span>
       )}
-      <div className="header-actions">
+      <nav className="header-nav" aria-label={locale === "zh" ? "主导航" : "Main navigation"}>
         {guide && <Link className="site-back-link" href="/events">{t.back}</Link>}
-        <PreferenceControls />
-        <AccountButton />
         <Link className="header-game-link" href={game ? "/events" : "/"}>
-          {game ? (locale === "zh" ? "黑客松活动" : "Events") : (locale === "zh" ? "搜寻信号" : "Signal Search")} ↗
+          {game ? (locale === "zh" ? "黑客松活动" : "Events") : (locale === "zh" ? "搜寻信号" : "Signal Search")}
         </Link>
         {!tool && <Link className="glass join-button" href="/tier">
           {t.rate} <span aria-hidden="true">↗</span>
         </Link>}
+      </nav>
+      <div className="header-utilities">
+        <PreferenceControls />
+        <AccountButton />
       </div>
     </header>
   );

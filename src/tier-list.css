@@ -189,7 +189,6 @@ html[lang="en"] .tier-intro h1 { letter-spacing: -2px; }
   .tier-empty { min-height: 64px; }
   .tier-intro h1 { font-size: 48px; }
   .tier-intro-action small { max-width: 160px; line-height: 1.6; text-align: right; }
-  .site-header:has(.site-back-link) { flex-wrap: wrap; }
 }
 @media (max-width: 540px) {
   .tier-main { padding: 14px 14px 0; }
@@ -224,12 +223,6 @@ html[lang="en"] .tier-intro h1 { letter-spacing: -2px; }
   .tier-selection { gap: 4px; }
   .tier-selection > strong { max-width: 90px; }
   .tier-selection .tier-quiet { padding: 7px; }
-  .tier-page .site-header { padding: 18px 16px; gap: 16px; }
   html[lang="en"] .tier-rank strong { font-size: 20px; }
   .site-back-link { font-size: 11px; }
-}
-@media (max-width: 560px) {
-  .site-header .site-back-link { grid-row: 2; grid-column: 1; align-self: center; }
-  .site-header .preference-controls { grid-row: 1; grid-column: 2; }
-  .site-header:has(.site-back-link) .join-button { grid-row: 2; grid-column: 2; }
 }

@@ -6,6 +6,7 @@
 - `lib/auth-copy.js` / `src/auth.css`：中英文文案、双主题、移动布局。
 - `worker/auth.js`：验证码与账户 API；`worker/index.js` 转交认证请求，并处理定时清理。
 - `migrations/0001_auth.sql`：用户、验证码挑战、会话、严格限额。
+- `migrations/0002_user_ids.sql`：为所有现有用户生成唯一的 8 位用户 ID，保留内部主键和会话。
 - `tests/auth.test.mjs`：真实本机 Miniflare D1 集成测试；发信通过测试替身捕获，没有线上请求。
 
 ## 首次生产配置
@@ -22,6 +23,14 @@
 8. 在 `https://cv404.tv` 用所有者指定的测试邮箱验收真实邮件、输入验证码登录、刷新保持登录、改昵称和退出。供应商接受发送不等于邮件一定到达收件箱；需人工收件确认，建议覆盖实际用户常用邮箱。
 
 `AUTH_ORIGIN` 固定为 `https://cv404.tv`，生产认证 API 拒绝其他域名；`workers.dev` 仍可展示静态页面，但不是账户登录域名。以后添加其他生产域名时，应明确设计允许来源及 Cookie 作用域，不能简单信任请求 Origin。
+
+## 用户 ID 更新
+
+部署此版本前运行 `npx wrangler d1 migrations apply AUTH_DB --remote`，随后部署新版 Worker。迁移会为所有已有账户（包括禁用账户）填充 `users.public_id`；旧版 Worker 在迁移后不能创建新账户，因此应紧接着部署新版。
+
+用户 ID 由 `a-z`、`0-9` 组成，固定 8 位，在「我的账户」中显示并可选中复制。它是永久标识，不是登录凭据；内部 UUID 和会话关联不变。新账户使用安全随机数生成，唯一索引防止重复；发生碰撞时重试整个登录事务，最多 5 次。昵称修改和重复登录都不会更改用户 ID。
+
+迁移中的极低概率 ID 碰撞会使迁移事务失败并回滚；重新执行迁移即可重新生成。不要手工改写已经分配的 ID。API 的 `userId` 是展示用的短 ID，`id` 继续表示内部 UUID。
 
 ## 本地开发
 
@@ -46,7 +55,7 @@ npm run preview
 | --- | --- | --- |
 | POST `/api/auth/send-code` | `{email, locale}` | `{challengeId, email, expiresIn, retryAfter}`；设置短期浏览器绑定 Cookie |
 | POST `/api/auth/verify-code` | `{challengeId, code}` + 浏览器绑定 Cookie | `{user}`；设置会话 Cookie、清除绑定 Cookie |
-| GET `/api/auth/me` | 会话 Cookie | `{user: {id,email,nickname}}` 或 `{user:null}` |
+| GET `/api/auth/me` | 会话 Cookie | `{user: {id,userId,email,nickname}}` 或 `{user:null}` |
 | PATCH `/api/account` | `{nickname}` + 会话 | `{user}`；昵称可为空，最多 32 个 UTF-16 代码单元 |
 | POST `/api/auth/logout` | `{}` | 撤销当前会话并清除 Cookie；幂等 |
 | POST `/api/auth/logout-all` | `{}` + 会话 | 删除此用户全部会话并清除 Cookie |

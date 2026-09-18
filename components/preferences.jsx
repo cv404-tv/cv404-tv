@@ -84,7 +84,7 @@ export function PreferenceControls() {
   const { locale, theme, setLocale, setTheme, t } = usePreferences();
   return (
     <div
-      className="preference-controls glass"
+      className="preference-controls"
       role="group"
       aria-label={t.preferences}
     >

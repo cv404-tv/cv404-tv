@@ -143,6 +143,10 @@ export function AuthProvider({ children }) {
       <h2 id="auth-title">{user ? t.account : challenge ? t.codeTitle : t.title}</h2>
       <p id="auth-description" className="auth-description">{user ? user.email : challenge ? <>{t.sent}<br /><strong>{email}</strong></> : t.subtitle}</p>
       {user ? <>
+        <dl className="auth-user-id">
+          <dt>{t.userId}</dt>
+          <dd><code>{user.userId}</code></dd>
+        </dl>
         <form onSubmit={save}>
           <label htmlFor="account-nickname">{t.nickname}</label>
           <input id="account-nickname" autoComplete="nickname" maxLength={32} value={nickname} onChange={event => setNickname(event.target.value)} placeholder={t.nicknamePlaceholder} disabled={!!busy} />
@@ -185,7 +189,7 @@ export function AccountButton() {
   const { user, ready, show } = useContext(AuthContext);
   const { locale } = usePreferences();
   const t = authCopy[locale];
-  return <button type="button" className="glass account-button" onClick={show} aria-label={user ? t.account : t.login} title={user ? t.account : undefined}>
+  return <button type="button" className="account-button" onClick={show} aria-label={user ? t.account : t.login} title={user ? t.account : t.login}>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3.3" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></svg>
     <span>{ready && user ? user.nickname || t.account : t.login}</span>
   </button>;

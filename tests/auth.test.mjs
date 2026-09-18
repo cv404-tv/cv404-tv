@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { test, before, after, beforeEach } from 'node:test';
+import { test, before, after, beforeEach, mock } from 'node:test';
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
-import { handleAuth, cleanupAuth, normalizeEmail, digest } from '../worker/auth.js';
+import { handleAuth, cleanupAuth, normalizeEmail, digest, randomUserId } from '../worker/auth.js';
 
 let mf, db, env, mail;
 const origin = 'https://cv404.tv';
@@ -30,6 +30,19 @@ before(async () => {
   db = await mf.getD1Database('AUTH_DB');
   const schema = await readFile(new URL('../migrations/0001_auth.sql', import.meta.url), 'utf8');
   await db.exec(schema.replace(/^--.*$/gm, '').replace(/\n/g, ' '));
+  // Exercise the upgrade with real legacy accounts, including a disabled one.
+  await db.batch([
+    db.prepare("INSERT INTO users (id, email, email_verified_at, created_at) VALUES ('legacy', 'legacy@example.com', 1, 1)"),
+    db.prepare("INSERT INTO users (id, email, email_verified_at, created_at, status) VALUES ('disabled', 'disabled@example.com', 1, 1, 'disabled')"),
+    db.prepare("INSERT INTO sessions VALUES ('legacy-session', 'legacy', 1, 9999999999)"),
+  ]);
+  const migration = await readFile(new URL('../migrations/0002_user_ids.sql', import.meta.url), 'utf8');
+  await db.exec(migration.replace(/^--.*$/gm, '').replace(/\n/g, ' '));
+  const legacy = (await db.prepare('SELECT * FROM users').all()).results;
+  assert.equal(legacy.length, 2);
+  for (const user of legacy) assert.match(user.public_id, /^[a-z0-9]{8}$/);
+  assert.notEqual(legacy[0].public_id, legacy[1].public_id);
+  assert.equal((await db.prepare('SELECT user_id FROM sessions').first()).user_id, 'legacy');
 });
 after(async () => { await mf?.dispose(); });
 beforeEach(async () => {
@@ -56,7 +69,8 @@ test('registration, cookie flags, no credential leaks, nickname, logout and repl
   assert.equal(r.headers.get('Cache-Control'), 'no-store');
   const user = (await r.json()).user;
   assert.equal(user.email, 'alice@example.com');
-  assert.deepEqual(Object.keys(user).sort(), ['email', 'id', 'nickname']);
+  assert.deepEqual(Object.keys(user).sort(), ['email', 'id', 'nickname', 'userId']);
+  assert.match(user.userId, /^[a-z0-9]{8}$/);
   assert.equal((await me(sessionCookie)).user.id, user.id);
   const nickname = await call('/api/account', { nickname: 'Alice' }, { cookie: sessionCookie, method: 'PATCH' });
   assert.equal((await nickname.json()).user.nickname, 'Alice');
@@ -123,6 +137,7 @@ test('existing users retain identity; sign out everywhere revokes both devices',
   await db.prepare('UPDATE auth_limits SET expires_at = 0 WHERE key LIKE ?').bind('send:cooldown:%').run();
   const b = await login('ALICE@example.com');
   assert.equal(a.user.id, b.user.id);
+  assert.equal(a.user.userId, b.user.userId);
   assert.equal((await me(a.cookie)).user.id, a.user.id);
   assert.equal((await call('/api/auth/logout-all', {}, { cookie: b.cookie })).status, 200);
   assert.equal((await me(a.cookie)).user, null);
@@ -161,6 +176,54 @@ test('profile rejects control characters and updates only the session owner', as
   await call('/api/account', { nickname: 'Alice', userId: b.user.id }, { method: 'PATCH', cookie: a.cookie });
   assert.equal((await me(b.cookie)).user.nickname, '');
   assert.equal((await me(a.cookie)).user.nickname, 'Alice');
+  assert.equal((await me(a.cookie)).user.userId, a.user.userId);
+  assert.notEqual(a.user.userId, b.user.userId);
+});
+
+test('user ID generator covers all characters and rejects biased bytes', () => {
+  const original = crypto.getRandomValues.bind(crypto);
+  let calls = 0;
+  const stub = mock.method(crypto, 'getRandomValues', bytes => {
+    if (bytes.length !== 8) return original(bytes);
+    bytes.fill(calls++ === 0 ? 255 : 35);
+    return bytes;
+  });
+  try {
+    assert.equal(randomUserId(), '99999999');
+    assert.equal(calls, 2);
+  } finally { stub.mock.restore(); }
+  const ids = Array.from({ length: 200 }, randomUserId);
+  for (const id of ids) assert.match(id, /^[a-z0-9]{8}$/);
+  assert.equal(new Set(ids.join('')).size, 36);
+});
+
+test('user ID collision retries the atomic login without consuming the code twice', async () => {
+  await db.prepare("INSERT INTO users (id, public_id, email, email_verified_at, created_at) VALUES ('existing', 'aaaaaaaa', 'existing@example.com', 1, 1)").run();
+  const original = crypto.getRandomValues.bind(crypto);
+  let calls = 0;
+  const stub = mock.method(crypto, 'getRandomValues', bytes => {
+    if (bytes.length !== 8) return original(bytes);
+    bytes.fill(calls++ === 0 ? 0 : 1);
+    return bytes;
+  });
+  try {
+    const a = await login('alice@example.com');
+    assert.equal(a.user.userId, 'bbbbbbbb');
+    assert.equal(calls, 2);
+    assert.equal((await db.prepare('SELECT attempts FROM login_challenges').first()).attempts, 1);
+    assert.equal((await db.prepare('SELECT COUNT(*) AS n FROM sessions').first()).n, 1);
+  } finally { stub.mock.restore(); }
+});
+
+test('user IDs are immutable and database rejects invalid, missing or duplicate IDs', async () => {
+  const a = await login('alice@example.com');
+  const response = await call('/api/account', { nickname: 'Alice', userId: 'changed1', public_id: 'changed2', id: 'changed3' }, { method: 'PATCH', cookie: a.cookie });
+  assert.equal((await response.json()).user.userId, a.user.userId);
+  for (const id of [null, '', 'abc1234', 'abc123456', 'ABC12345', 'abc_1234', a.user.userId]) {
+    await assert.rejects(db.prepare('INSERT INTO users (id, public_id, email, email_verified_at, created_at) VALUES (?, ?, ?, 1, 1)').bind(crypto.randomUUID(), id, 'other@example.com').run());
+  }
+  await assert.rejects(db.prepare("UPDATE users SET public_id = 'changed1' WHERE id = ?").bind(a.user.id).run());
+  assert.equal((await me(a.cookie)).user.userId, a.user.userId);
 });
 
 test('global budget blocks sending; missing configuration fails closed', async () => {
