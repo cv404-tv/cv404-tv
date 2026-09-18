@@ -1,3 +1,5 @@
+import { cleanEmail, isValidEmail, isValidCode } from '../lib/auth-validation.js';
+
 const MINUTE = 60;
 const SESSION_TTL = 30 * 24 * 60 * MINUTE;
 const CODE_TTL = 10 * MINUTE;
@@ -20,12 +22,9 @@ function json(body, status = 200, headers = {}) {
 }
 
 export function normalizeEmail(value) {
-  if (typeof value !== 'string') throw new AuthError('invalid_email');
-  const email = value.trim().toLowerCase();
   // Deliberately do not strip dots or +tags: these may identify different mailboxes.
-  if (email.length > 254 || !/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,63}$/.test(email)
-    || email.startsWith('.') || email.includes('..') || email.includes('.@')) throw new AuthError('invalid_email');
-  return email;
+  if (!isValidEmail(value)) throw new AuthError('invalid_email');
+  return cleanEmail(value);
 }
 
 const hex = bytes => Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, '0')).join('');
@@ -145,7 +144,7 @@ async function sendCode(request, env, body, now) {
 function publicUser(row) { return { id: row.id, userId: row.public_id, email: row.email, nickname: row.nickname }; }
 
 async function verifyCode(request, env, body, now) {
-  if (!TOKEN_PATTERN.test(body.challengeId || '') || !/^\d{6}$/.test(body.code || '')) throw new AuthError('invalid_code');
+  if (!TOKEN_PATTERN.test(body.challengeId || '') || !isValidCode(body.code)) throw new AuthError('invalid_code');
   const client = cookie(request, 'login');
   if (!TOKEN_PATTERN.test(client)) throw new AuthError('invalid_code');
   const challenge = await env.AUTH_DB.prepare('SELECT email FROM login_challenges WHERE id = ? AND client_hash = ?').bind(body.challengeId, await digest(client)).first();
@@ -190,7 +189,7 @@ async function verifyCode(request, env, body, now) {
   return response;
 }
 
-async function currentSession(request, env, now) {
+export async function currentSession(request, env, now = Math.floor(Date.now() / 1000)) {
   const token = cookie(request, 'session');
   if (!TOKEN_PATTERN.test(token)) return null;
   const hash = await digest(token);

@@ -1,4 +1,38 @@
 .tier-main { max-width: 1328px; padding: 32px 40px 0; margin: auto; }
+.tier-community { margin: 32px 0 48px; padding: 28px; background: var(--glass-soft); border: 1px solid var(--stroke); border-radius: 12px; }
+.tier-community-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.tier-community h2 { font-size: clamp(24px, 3vw, 34px); margin: 0 0 10px; letter-spacing: -1px; }
+.tier-community p { font-size: 13px; line-height: 1.7; color: var(--muted); }
+.tier-community .tier-eyebrow { font-size: 10px; margin-bottom: 12px; }
+.tier-community-formula { padding: 12px 0; border-top: 1px solid var(--stroke-soft); }
+.tier-vote-panel { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 16px; border: 1px solid var(--stroke); border-radius: 8px; }
+.tier-vote-panel p { margin: 0; max-width: 660px; }
+.tier-vote-panel span { display: block; font-size: 12px; margin-top: 8px; }
+.tier-vote-actions { display: flex; flex-direction: column; flex-shrink: 0; align-items: center; gap: 4px; }
+.tier-ranking-status { min-height: 20px; }
+.tier-community-count { font-family: var(--mono); }
+.tier-ranking-scroll { overflow-x: auto; }
+.tier-ranking-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; white-space: nowrap; }
+.tier-ranking-table th, .tier-ranking-table td { padding: 16px 12px; border-bottom: 1px solid var(--stroke-soft); }
+.tier-ranking-table thead th { color: var(--muted); font-size: 11px; font-weight: 500; }
+.tier-ranking-model { display: flex; align-items: center; gap: 12px; }
+.tier-ranking-model img { object-fit: contain; }
+.tier-ranking-position, .tier-ranking-score { font-family: var(--mono); font-size: 18px; }
+.tier-ranking-unrated { font-family: inherit; color: var(--muted); font-size: 12px; }
+.tier-score-distribution { display: flex; gap: 5px; }
+.tier-score-distribution > span { min-width: 34px; display: grid; justify-items: center; gap: 3px; padding: 5px; border-radius: 4px; color: #252a2b; background: #efcf77; }
+.tier-score-distribution small { font-size: 9px; }
+.tier-score-distribution [data-score="2"] { background: #ee877c; }
+.tier-score-distribution [data-score="1"] { background: #efb27b; }
+.tier-score-distribution [data-score="-1"] { background: #b7c9a2; }
+.tier-score-distribution [data-score="-2"] { background: #a4bec9; }
+@media (max-width: 700px) {
+  .tier-community { padding: 18px 12px; }
+  .tier-community-heading, .tier-vote-panel { align-items: stretch; flex-direction: column; gap: 12px; }
+  .tier-community-heading > button { align-self: flex-start; }
+  .tier-vote-actions { align-items: stretch; }
+  .tier-ranking-table th, .tier-ranking-table td { padding: 12px 8px; }
+}
 .tier-intro { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; margin: 12px 0 36px; }
 .tier-eyebrow { font: 10px var(--mono); letter-spacing: 2.5px; color: var(--muted); margin: 0 0 18px; }
 .tier-intro h1 { font-size: clamp(42px, 5vw, 66px); line-height: 1.05; letter-spacing: -3px; margin: 0; font-weight: 800; }

@@ -7,6 +7,8 @@ import { usePreferences } from "./preferences";
 import { COLORS, TIERS, MAX_STICKERS, MAX_CUSTOM_LOGOS, MAX_IMAGE_LENGTH, SHARE_ID, emptyBoard, normalizeBoard, moveSticker } from "../lib/tier-board";
 import { tierCopy } from "../lib/tier-copy";
 import { availableLogoStickers, getAiSticker } from "../lib/ai-stickers";
+import TierRanking from "./tier-ranking";
+import { TIER_SCORES } from "../lib/tier-ranking";
 
 const DRAFT_KEY = "cv404-tier-draft-v1";
 const MAX_LOGO_FILE_BYTES = 500 * 1024;
@@ -303,7 +305,7 @@ function TierWorkspace() {
     <main className="tier-main" id="main-content">
       <section className="tier-intro">
         <div><p className="tier-eyebrow">{t.eyebrow}</p><h1>{t.title}<span className="tier-title-dot">.</span></h1><p className="tier-tagline">{t.tagline} <span>{mode === "view" ? t.sharedIntro : t.intro}</span></p></div>
-        <div className="tier-intro-action">{editable ? <><button className="tier-primary" onClick={publish} disabled={sharing || uploading || !ranked.length}>{sharing ? t.sharing : t.share}</button><small>{t.shareNote}</small></> : mode === "view" ? <><a className="tier-primary" href="/tier">{t.create}</a><small>{t.shared}</small></> : null}</div>
+        <div className="tier-intro-action">{editable ? <><button className="tier-primary" onClick={publish} disabled={sharing || uploading || !ranked.length}>{sharing ? t.sharing : t.share}</button><small>{t.shareNote}</small></> : mode === "view" ? <><a className="tier-primary" href="/tier">{t.create}</a><small>{t.shared}</small></> : null}<a className="tier-quiet" href="#community-title">{t.community}</a></div>
       </section>
 
       {mode === "loading" && <div className="tier-loading" role="status">{t.loading}</div>}
@@ -325,7 +327,7 @@ function TierWorkspace() {
           {confirmClear && <div className="tier-confirm"><span>{t.clearConfirm}</span><button onClick={() => { change(emptyBoard()); setSelected(null); }}>{t.yesClear}</button><button onClick={() => setConfirmClear(false)}>{t.cancel}</button></div>}
           <div className="tier-board">
             {TIERS.map((zone, index) => <div className={`tier-row tier-row-${zone} ${over === zone ? "is-over" : ""}`} data-zone={zone} key={zone}>
-              {editable ? <button className="tier-rank" onClick={() => selected && move(selected, zone)} aria-label={`${t.place} ${t.tiers[index]}`} disabled={!selected}><strong>{t.tiers[index]}</strong><small>{t.tierNotes[index]}</small></button> : <div className="tier-rank"><strong>{t.tiers[index]}</strong><small>{t.tierNotes[index]}</small></div>}
+              {editable ? <button className="tier-rank" onClick={() => selected && move(selected, zone)} aria-label={`${t.place} ${t.tiers[index]}`} disabled={!selected}><strong>{t.tiers[index]}</strong><small>{t.tierNotes[index]} · {TIER_SCORES[zone] > 0 ? '+' : ''}{TIER_SCORES[zone]}</small></button> : <div className="tier-rank"><strong>{t.tiers[index]}</strong><small>{t.tierNotes[index]} · {TIER_SCORES[zone] > 0 ? '+' : ''}{TIER_SCORES[zone]}</small></div>}
               <div className="tier-row-content">{board.stickers.filter((s) => s.zone === zone).map(renderSticker)}{!board.stickers.some((s) => s.zone === zone) && (editable ? <button className="tier-empty" onClick={() => selected && move(selected, zone)} disabled={!selected}>{selected ? `${t.place} ${t.tiers[index]} ＋` : t.empty}</button> : <span className="tier-empty">—</span>)}</div>
             </div>)}
           </div>
@@ -370,6 +372,7 @@ function TierWorkspace() {
         </aside>}
       </div>}
       <p className="tier-notice" role="status" aria-live="polite">{notice && !["deleted", "returnedLogo", "returnedCustom"].includes(notice) ? t[notice] || notice : ""}</p>
+      <TierRanking board={board} editable={editable} />
       <p className="tier-signoff">{t.credit} <span>✳</span></p>
     </main>
     <Footer />

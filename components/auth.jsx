@@ -2,8 +2,11 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { usePreferences } from './preferences';
 import { authCopy } from '../lib/auth-copy';
+import { cleanEmail, isValidEmail, isValidCode } from '../lib/auth-validation';
 
 const AuthContext = createContext(null);
+
+export function useAuth() { return useContext(AuthContext); }
 
 async function api(path, body, method = 'POST') {
   let response;
@@ -36,7 +39,13 @@ export function AuthProvider({ children }) {
   const [message, setMessage] = useState('');
   const [retryAt, setRetryAt] = useState(0);
   const [seconds, setSeconds] = useState(0);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [codeTouched, setCodeTouched] = useState(false);
+  const [pasteError, setPasteError] = useState(false);
+  const [expiresAt, setExpiresAt] = useState(0);
+  const [expired, setExpired] = useState(false);
   const dialog = useRef(null);
+  const emailInput = useRef(null);
   const codeInput = useRef(null);
   const channel = useRef(null);
   const mutationVersion = useRef(0);
@@ -74,13 +83,22 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     retryAtRef.current = retryAt;
-    const tick = () => setSeconds(Math.max(0, Math.ceil((retryAt - Date.now()) / 1000)));
+    const tick = () => {
+      setSeconds(Math.max(0, Math.ceil((retryAt - Date.now()) / 1000)));
+      setExpired(!!expiresAt && Date.now() >= expiresAt);
+    };
     tick();
-    if (!retryAt) return;
+    if (!retryAt && !expiresAt) return;
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
-  }, [retryAt]);
+  }, [retryAt, expiresAt]);
   useEffect(() => { if (open && challenge && !user) codeInput.current?.focus(); }, [challenge, open, user]);
+  useEffect(() => { if (open && !challenge && !user) emailInput.current?.focus(); }, [open, challenge, user]);
+  useEffect(() => {
+    if (!open || busy) return;
+    if (error === 'invalid_code') { codeInput.current?.focus(); codeInput.current?.select(); }
+    if (error === 'invalid_email') emailInput.current?.focus();
+  }, [error, busy, open]);
   useEffect(() => { setNickname(user?.nickname || ''); }, [user]);
 
   function updateUser(value) {
@@ -88,7 +106,7 @@ export function AuthProvider({ children }) {
     setUser(value);
     channel.current?.postMessage('changed');
   }
-  function show() { setError(''); setMessage(''); setOpen(true); }
+  function show() { setError(''); setMessage(''); setEmailTouched(false); setCodeTouched(false); setPasteError(false); setOpen(true); }
   async function run(action, task) {
     if (busyRef.current) return;
     busyRef.current = true;
@@ -106,19 +124,26 @@ export function AuthProvider({ children }) {
   }
   const send = event => {
     event?.preventDefault();
+    setEmailTouched(true);
+    if (!isValidEmail(email)) { emailInput.current?.focus(); return; }
     if (Date.now() < retryAtRef.current) return;
     return run('send', async () => {
-      const result = await api('/api/auth/send-code', { email, locale });
+      const result = await api('/api/auth/send-code', { email: cleanEmail(email), locale });
       setEmail(result.email); setChallenge(result.challengeId); setCode('');
+      setCodeTouched(false); setPasteError(false); setExpired(false);
+      setExpiresAt(Date.now() + result.expiresIn * 1000);
       const next = Date.now() + result.retryAfter * 1000;
       retryAtRef.current = next; setRetryAt(next);
     });
   };
   const verify = event => {
     event.preventDefault();
+    setCodeTouched(true);
+    if (!isValidCode(code) || pasteError) { codeInput.current?.focus(); return; }
+    if (Date.now() >= expiresAt) { setExpired(true); codeInput.current?.focus(); return; }
     run('verify', async () => {
       const result = await api('/api/auth/verify-code', { challengeId: challenge, code });
-      updateUser(result.user); setChallenge(null); setCode(''); setOpen(false);
+      updateUser(result.user); setChallenge(null); setCode(''); setExpiresAt(0); setOpen(false);
     });
   };
   const save = event => {
@@ -130,8 +155,16 @@ export function AuthProvider({ children }) {
   };
   const logout = all => run(all ? 'logoutAll' : 'logout', async () => {
     await api(`/api/auth/${all ? 'logout-all' : 'logout'}`);
-    updateUser(null); setChallenge(null); setCode(''); setEmail(''); setOpen(false);
+    updateUser(null); setChallenge(null); setCode(''); setExpiresAt(0); setEmail(''); setOpen(false);
   });
+
+  const emailError = emailTouched && !isValidEmail(email)
+    ? (email.trim() ? t.emailFormat : t.emailRequired)
+    : error === 'invalid_email' ? t.emailFormat : '';
+  const codeError = expired ? t.codeExpired : pasteError ? t.codeFormat
+    : codeTouched && !isValidCode(code) ? (code ? t.codeFormat : t.codeRequired)
+    : error === 'invalid_code' ? t.errors.invalid_code : '';
+  const fieldError = (!challenge && error === 'invalid_email') || (challenge && error === 'invalid_code');
 
   return <AuthContext.Provider value={{ user, ready, show }}>
     {children}
@@ -140,8 +173,13 @@ export function AuthProvider({ children }) {
       onClose={() => setOpen(false)}>
       <button type="button" className="auth-close" aria-label={t.close} disabled={!!busy} onClick={() => setOpen(false)}>×</button>
       <div className="auth-eyebrow"><span aria-hidden="true" /> CLOUD VALLEY 404</div>
+      {!user && <ol className="auth-steps" aria-label={t.steps}>
+        <li className={!challenge ? 'is-current' : 'is-complete'} aria-current={!challenge ? 'step' : undefined}><span aria-hidden="true">{challenge ? '✓' : '01'}</span>{t.emailStep}</li>
+        <li className={challenge ? 'is-current' : ''} aria-current={challenge ? 'step' : undefined}><span aria-hidden="true">02</span>{t.codeStep}</li>
+      </ol>}
       <h2 id="auth-title">{user ? t.account : challenge ? t.codeTitle : t.title}</h2>
-      <p id="auth-description" className="auth-description">{user ? user.email : challenge ? <>{t.sent}<br /><strong>{email}</strong></> : t.subtitle}</p>
+      <p id="auth-description" className="auth-description">{user ? user.email : challenge ? t.sent : t.subtitle}</p>
+      {challenge && !user && <div className="auth-recipient"><span className="auth-mail-icon" aria-hidden="true">@</span><strong>{email}</strong><button type="button" className="auth-link" disabled={!!busy} onClick={() => { setChallenge(null); setCode(''); setExpiresAt(0); setError(''); setCodeTouched(false); setPasteError(false); }}>{t.changeEmail}</button></div>}
       {user ? <>
         <dl className="auth-user-id">
           <dt>{t.userId}</dt>
@@ -159,28 +197,38 @@ export function AuthProvider({ children }) {
           <p className="auth-hint">{t.logoutAllHint}</p>
         </div>
       </> : challenge ? <>
-        <form onSubmit={verify}>
-          <label htmlFor="login-code">{t.code}</label>
+        <form onSubmit={verify} noValidate aria-busy={!!busy}>
+          <div className="auth-field-heading"><label htmlFor="login-code">{t.code}</label><span>{t.codeValidity}</span></div>
           <input ref={codeInput} id="login-code" className="auth-code" type="text" inputMode="numeric" autoComplete="one-time-code"
-            maxLength={6} pattern="[0-9]{6}" required value={code} disabled={!!busy}
-            onChange={event => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} />
-          <button className="auth-primary" disabled={!!busy || code.length !== 6}>{busy === 'verify' ? t.verifying : t.verify}</button>
+            maxLength={6} pattern="[0-9]{6}" placeholder="000000" required value={code} disabled={!!busy}
+            aria-invalid={!!codeError} aria-describedby="code-feedback" onBlur={() => setCodeTouched(true)}
+            onChange={event => { setCode(event.target.value); setPasteError(false); setError(''); }}
+            onPaste={event => {
+              event.preventDefault();
+              const pasted = event.clipboardData.getData('text').trim();
+              setCodeTouched(true); setError('');
+              if (isValidCode(pasted)) { setCode(pasted); setPasteError(false); }
+              else setPasteError(true);
+            }} />
+          <p id="code-feedback" className={`auth-field-feedback${codeError ? ' is-error' : ''}`} aria-live="polite">{codeError || t.codeHint}</p>
+          <button className="auth-primary" disabled={!!busy || expired}><span>{busy === 'verify' ? t.verifying : t.verify}</span><span aria-hidden="true">{busy === 'verify' ? <i className="auth-spinner" /> : '→'}</span></button>
         </form>
         <div className="auth-code-actions">
-          <button type="button" className="auth-link" disabled={!!busy} onClick={() => { setChallenge(null); setCode(''); setError(''); }}>{t.changeEmail}</button>
           <button type="button" className="auth-link" disabled={!!busy || seconds > 0} onClick={send}>{busy === 'send' ? t.sending : seconds ? t.resendIn(seconds) : t.resend}</button>
         </div>
         <p className="auth-hint">{t.help}</p>
-      </> : <form onSubmit={send}>
+      </> : <form onSubmit={send} noValidate aria-busy={!!busy}>
         <label htmlFor="login-email">{t.email}</label>
-        <input id="login-email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} required autoFocus
-          value={email} onChange={event => setEmail(event.target.value)} placeholder={t.emailPlaceholder} disabled={!!busy} />
-        <button className="auth-primary" disabled={!!busy || seconds > 0}>{busy === 'send' ? t.sending : seconds ? t.resendIn(seconds) : t.send}</button>
+        <div className="auth-email-field"><span className="auth-mail-icon" aria-hidden="true">@</span><input ref={emailInput} id="login-email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} required
+          aria-invalid={!!emailError} aria-describedby="email-feedback" onBlur={() => setEmailTouched(true)}
+          value={email} onChange={event => { setEmail(event.target.value); setError(''); }} placeholder={t.emailPlaceholder} disabled={!!busy} /></div>
+        <p id="email-feedback" className={`auth-field-feedback${emailError ? ' is-error' : ''}`} aria-live="polite">{emailError || t.emailHint}</p>
+        <button className="auth-primary" disabled={!!busy || seconds > 0}><span>{busy === 'send' ? t.sending : seconds ? t.resendIn(seconds) : t.send}</span><span aria-hidden="true">{busy === 'send' ? <i className="auth-spinner" /> : '→'}</span></button>
         <p className="auth-hint">{t.notice}</p>
       </form>}
-      {error && <p className="auth-error" role="alert">{error === 'expiredSession' ? t.expiredSession : (t.errors[error] || t.errors.unavailable)}</p>}
+      {error && !fieldError && <p className="auth-error" role="alert">{error === 'expiredSession' ? t.expiredSession : (t.errors[error] || t.errors.unavailable)}</p>}
       {message && <p className="auth-success" role="status">{t[message]}</p>}
-      <div className="auth-footnote" aria-hidden="true">好想法，不再 404。<span>●</span></div>
+      <div className="auth-footnote"><span>{user ? t.verified : t.passwordless}</span><span aria-hidden="true">CV / 404</span></div>
     </dialog>
   </AuthContext.Provider>;
 }

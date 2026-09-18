@@ -1,6 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
 import { MAX_BOARD_BYTES, normalizeBoard, SHARE_ID } from "../lib/tier-board.js";
 import { handleAuth, cleanupAuth } from "./auth.js";
+import { handleTierRanking } from "./tier-ranking.js";
 
 function json(body, status = 200, headers = {}) {
   return Response.json(body, { status, headers: {
@@ -52,6 +53,7 @@ export default {
   },
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/api/tier-rankings" || url.pathname.startsWith("/api/tier-rankings/")) return handleTierRanking(request, env);
     if (url.pathname.startsWith("/api/auth/") || url.pathname === "/api/account") return handleAuth(request, env);
     if (url.pathname === "/tier-list" || url.pathname === "/tier-list/") {
       url.pathname = "/tier";
