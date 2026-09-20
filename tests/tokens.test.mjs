@@ -2,13 +2,14 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test, before, after, beforeEach } from 'node:test';
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
+import { handleManagement } from '../worker/management.js';
 import { handleTokens } from '../worker/tokens.js';
 import { handleAuth, digest } from '../worker/auth.js';
 
 let mf, db, env;
 const origin = 'https://cv404.tv';
 const tokens = { alice: 'a'.repeat(64), bob: 'b'.repeat(64), admin: 'c'.repeat(64) };
-const call = (path, { user = 'alice', method = 'GET', body, headers, raw } = {}) => handleTokens(new Request(`${origin}/api/${path}`, {
+const call = (path, { user = 'alice', method = 'GET', body, headers, raw } = {}) => (path.startsWith('account/') || /^admin\/(overview|audit|users\/)/.test(path) ? handleManagement : handleTokens)(new Request(`${origin}/api/${path}`, {
   method, headers: { Origin: origin, 'Content-Type': 'application/json', ...(tokens[user] ? { Cookie: `__Host-cv404_session=${tokens[user]}` } : {}), ...headers },
   ...(method === 'GET' ? {} : { body: raw ?? JSON.stringify(body) }),
 }), env);
@@ -21,14 +22,14 @@ const list = async (path, user = 'alice') => (await call(path, { user })).json()
 before(async () => {
   mf = new Miniflare(convertV4MiniflareOptions({ modules: true, script: 'export default { fetch() { return new Response("test"); } }', d1Databases: ['AUTH_DB'], compatibilityDate: '2026-09-14' }));
   db = await mf.getD1Database('AUTH_DB');
-  for (const name of ['0001_auth', '0002_user_ids', '0003_tier_votes', '0004_token_requests']) {
+  for (const name of ['0001_auth', '0002_user_ids', '0003_tier_votes', '0004_token_requests', '0005_management']) {
     const sql = await readFile(new URL(`../migrations/${name}.sql`, import.meta.url), 'utf8');
     await db.exec(sql.replace(/^--.*$/gm, '').replace(/\n/g, ' '));
   }
 });
 after(async () => { await mf?.dispose(); });
 beforeEach(async () => {
-  await db.batch(['token_requests', 'sessions', 'users'].map(table => db.prepare(`DELETE FROM ${table}`)));
+  await db.batch(['admin_audit', 'token_requests', 'tier_votes', 'sessions', 'login_challenges', 'users'].map(table => db.prepare(`DELETE FROM ${table}`)));
   for (const [id, token] of Object.entries(tokens)) {
     await db.prepare('INSERT INTO users (id, public_id, email, nickname, email_verified_at, created_at) VALUES (?, ?, ?, ?, 1, 1)').bind(id, `${id}00000000`.slice(0, 8), `${id}@example.com`, id).run();
     await db.prepare('INSERT INTO sessions VALUES (?, ?, 1, ?)').bind(await digest(token), id, Math.floor(Date.now() / 1000) + 3600).run();
@@ -150,4 +151,107 @@ test('disabled/expired sessions and disabled applicants cannot review or collect
   assert.equal((await call('admin/missing', { user: 'admin' })).status, 404);
   delete env.AUTH_DB;
   assert.equal((await call('token-requests')).status, 503);
+});
+
+test('management protects administrators and rejects untrusted and malformed changes', async () => {
+  for (const path of ['admin/overview', 'admin/audit']) {
+    assert.equal((await call(path)).status, 403);
+    assert.equal((await call(path, { user: 'guest' })).status, 401);
+  }
+  const patch = { user: 'admin', method: 'PATCH', body: { action: 'disable', reason: 'Abuse report verified' } };
+  assert.equal((await call('admin/users/alice000', { ...patch, user: 'alice' })).status, 403);
+  assert.equal((await call('admin/users/admin000', patch)).status, 409);
+  env.ADMIN_EMAILS += ',bob@example.com';
+  assert.equal((await call('admin/users/bob00000', patch)).status, 409);
+  assert.equal((await call('admin/users/missing0', patch)).status, 404);
+  assert.equal((await call('admin/users/alice000', { ...patch, headers: { Origin: 'https://evil.test' } })).status, 403);
+  assert.equal((await call('admin/users/alice000', { ...patch, body: { ...patch.body, reason: '' } })).status, 400);
+  assert.equal((await call('admin/users/alice000', { ...patch, body: { ...patch.body, action: 'delete' } })).status, 400);
+  assert.equal((await call('admin/users/alice000', { ...patch, raw: 'x'.repeat(17000) })).status, 413);
+  assert.equal((await call('admin/overview', { user: 'admin', method: 'POST', body: {} })).status, 405);
+  assert.equal((await call('account/overview', { user: 'guest' })).status, 401);
+  env.SHARE_LIMITER.limit = async () => ({ success: false });
+  assert.equal((await call('admin/users/alice000', patch)).status, 429);
+});
+
+test('disable, re-enable and forced sign-out are audited and revoke access permanently for old sessions', async () => {
+  const patch = action => call('admin/users/alice000', { user: 'admin', method: 'PATCH', body: { action, reason: 'Support case 404' } });
+  assert.equal((await patch('disable')).status, 200);
+  assert.equal((await call('account/overview')).status, 401);
+  assert.equal((await db.prepare("SELECT COUNT(*) AS n FROM sessions WHERE user_id = 'alice'").first()).n, 0);
+  assert.equal((await list('admin/users?status=disabled', 'admin')).total, 1);
+  assert.equal((await patch('enable')).status, 200);
+  assert.equal((await call('account/overview')).status, 401);
+  await db.prepare('INSERT INTO sessions VALUES (?, ?, 1, ?)').bind(await digest(tokens.alice), 'alice', Math.floor(Date.now() / 1000) + 3600).run();
+  assert.equal((await call('account/overview')).status, 200);
+  assert.equal((await patch('revoke_sessions')).status, 200);
+  assert.equal((await call('account/overview')).status, 401);
+  const audit = await list('admin/audit', 'admin');
+  assert.equal(audit.total, 3);
+  assert.deepEqual(audit.entries.map(e => e.action).sort(), ['disable', 'enable', 'revoke_sessions']);
+  assert.ok(audit.entries.every(e => e.actorEmail === 'admin@example.com' && e.targetEmail === 'alice@example.com'));
+  assert.doesNotMatch(JSON.stringify(audit), /token_hash|sk-test|credential/);
+});
+
+test('overview, request search and review audit reflect real data without exposing keys', async () => {
+  const { id } = await (await apply()).json();
+  await apply('bob', { ...input, projectName: 'A different project' });
+  assert.equal((await list('admin/token-requests?q=alice000', 'admin')).total, 1);
+  assert.equal((await list('admin/token-requests?q=different', 'admin')).total, 1);
+  assert.equal((await list('admin/token-requests?q=%25', 'admin')).total, 0);
+  assert.equal((await review(id)).status, 200);
+  const data = await list('admin/overview', 'admin');
+  assert.equal(data.users, 3); assert.equal(data.pending, 1); assert.equal(data.approved, 1); assert.equal(data.granted, approval.grantedTokens);
+  const own = await list('account/overview');
+  assert.equal(own.applications, 1); assert.equal(own.pending, 0); assert.equal(own.granted, approval.grantedTokens); assert.equal(own.sessions, 1);
+  const audit = await list('admin/audit', 'admin');
+  assert.equal(audit.total, 1); assert.equal(audit.entries[0].action, 'token_approved'); assert.equal(audit.entries[0].detail, id);
+  assert.doesNotMatch(JSON.stringify(audit), /sk-test|credential/);
+  assert.equal((await list('admin/users?q=admin', 'admin')).users[0].isAdmin, true);
+  assert.equal((await call('admin/users?status=oops', { user: 'admin' })).status, 400);
+});
+
+test('session list stays private and signing out others preserves only the current session', async () => {
+  const otherHash = await digest('d'.repeat(64));
+  await db.prepare('INSERT INTO sessions VALUES (?, ?, 2, ?)').bind(otherHash, 'alice', Math.floor(Date.now() / 1000) + 3600).run();
+  await db.prepare('INSERT INTO sessions VALUES (?, ?, 1, 1)').bind('expired-hash', 'alice').run();
+  const result = await list('account/sessions');
+  assert.equal(result.total, 2); assert.equal(result.sessions[0].current, 1);
+  assert.doesNotMatch(JSON.stringify(result), /token_hash|expired-hash|aaaaaa/);
+  assert.equal((await list('account/sessions', 'bob')).total, 1);
+  assert.equal((await call('account/sessions', { method: 'DELETE', body: {}, headers: { Origin: '' } })).status, 403);
+  assert.equal((await call('account/sessions', { method: 'DELETE', body: {} })).status, 200);
+  assert.equal((await list('account/sessions')).total, 1);
+  assert.equal((await list('account/sessions', 'bob')).total, 1);
+  assert.equal((await db.prepare('SELECT COUNT(*) AS n FROM sessions WHERE token_hash = ?').bind(otherHash).first()).n, 0);
+  assert.equal((await call('account/sessions?page=-1')).status, 400);
+});
+
+test('failed audit storage rolls back account changes and token approval', async () => {
+  const { id } = await (await apply()).json();
+  await db.exec("CREATE TRIGGER reject_audit BEFORE INSERT ON admin_audit BEGIN SELECT RAISE(ABORT, 'test audit unavailable'); END;");
+  try {
+    assert.equal((await call('admin/users/alice000', { user: 'admin', method: 'PATCH', body: { action: 'disable', reason: 'Atomic rollback test' } })).status, 503);
+    assert.equal((await call('account/overview')).status, 200);
+    assert.equal((await db.prepare("SELECT status FROM users WHERE id = 'alice'").first()).status, 'active');
+    assert.equal((await review(id)).status, 503);
+    assert.equal((await list('token-requests')).requests[0].status, 'pending');
+  } finally { await db.exec('DROP TRIGGER reject_audit;'); }
+});
+
+test('audit and session pages are bounded and do not duplicate records', async () => {
+  const now = Math.floor(Date.now() / 1000);
+  for (let i = 0; i < 22; i++) {
+    await db.prepare('INSERT INTO sessions VALUES (?, ?, ?, ?)').bind(`extra-session-${i}`, 'alice', now - i, now + 3600).run();
+    await db.prepare('INSERT INTO admin_audit VALUES (?, ?, ?, ?, ?, ?)').bind(`audit-${i}`, 'admin', 'alice', 'revoke_sessions', `Reason ${i}`, now).run();
+  }
+  const first = await list('account/sessions');
+  const second = await list('account/sessions?page=2');
+  assert.equal(first.total, 23); assert.equal(first.sessions.length, 20); assert.equal(second.sessions.length, 3);
+  assert.equal(first.sessions.filter(s => s.current).length, 1); assert.equal(second.sessions.filter(s => s.current).length, 0);
+  const a = await list('admin/audit', 'admin');
+  const b = await list('admin/audit?page=2', 'admin');
+  assert.equal(a.entries.length, 20); assert.equal(b.entries.length, 2);
+  assert.equal(new Set([...a.entries, ...b.entries].map(e => e.id)).size, 22);
+  assert.equal((await call('admin/audit?page=1.5', { user: 'admin' })).status, 400);
 });

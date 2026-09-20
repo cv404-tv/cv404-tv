@@ -4,10 +4,10 @@ import { isAdmin } from '../lib/admin-access.js';
 const json = (body, status = 200, headers = {}) => Response.json(body, { status, headers: {
   'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'X-Robots-Tag': 'noindex, nofollow', ...headers,
 } });
-class InputError extends Error {
+export class InputError extends Error {
   constructor(code, status = 400) { super(code); this.status = status; }
 }
-async function readBody(request) {
+export async function readBody(request) {
   if (request.headers.get('Content-Type')?.split(';')[0].trim() !== 'application/json') throw new InputError('invalid_content_type', 415);
   if (!request.body) throw new InputError('invalid_input');
   const reader = request.body.getReader();
@@ -26,7 +26,7 @@ async function readBody(request) {
     return body;
   } catch { throw new InputError('invalid_input'); }
 }
-function field(value, min, max) {
+export function field(value, min, max) {
   // SQLite length() counts Unicode code points; a surrogate pair is one character.
   if (typeof value !== 'string' || [...value.trim()].length < min || value.trim().length > max || /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(value)) throw new InputError('invalid_input');
   return value.trim();
@@ -35,7 +35,7 @@ function amount(value) {
   if (!Number.isSafeInteger(value) || value < 1 || value > 1000000000) throw new InputError('invalid_input');
   return value;
 }
-function pagination(url) {
+export function pagination(url) {
   const page = Number(url.searchParams.get('page') || 1);
   if (!Number.isSafeInteger(page) || page < 1 || page > 1000000) throw new InputError('invalid_input');
   return { page, offset: (page - 1) * 20 };
@@ -86,20 +86,23 @@ export async function handleTokens(request, env) {
       const { page, offset } = pagination(url);
       if (users) {
         const query = field(url.searchParams.get('q') || '', 0, 100);
-        const filter = "(? = '' OR instr(lower(email), lower(?)) > 0 OR instr(lower(nickname), lower(?)) > 0 OR instr(public_id, lower(?)) > 0)";
-        const args = [query, query, query, query];
+        const state = url.searchParams.get('status') || 'all';
+        if (!['all', 'active', 'disabled'].includes(state)) throw new InputError('invalid_input');
+        const filter = "(? = 'all' OR status = ?) AND (? = '' OR instr(lower(email), lower(?)) > 0 OR instr(lower(nickname), lower(?)) > 0 OR instr(public_id, lower(?)) > 0)";
+        const args = [state, state, query, query, query, query];
         const [count, rows] = await env.AUTH_DB.batch([
           env.AUTH_DB.prepare(`SELECT COUNT(*) AS total FROM users WHERE ${filter}`).bind(...args),
           env.AUTH_DB.prepare(`SELECT public_id AS userId, email, nickname, status, created_at AS createdAt,
             (SELECT COUNT(*) FROM token_requests r WHERE r.user_id = users.id) AS requestCount
             FROM users WHERE ${filter} ORDER BY created_at DESC, id DESC LIMIT 20 OFFSET ?`).bind(...args, offset),
         ]);
-        return json({ users: rows.results, total: count.results[0].total, page, pageSize: 20 });
+        return json({ users: rows.results.map(row => ({ ...row, isAdmin: isAdmin(row, env) })), total: count.results[0].total, page, pageSize: 20 });
       }
       const status = url.searchParams.get('status') || 'all';
       if (!['all', 'pending', 'approved', 'rejected'].includes(status)) throw new InputError('invalid_input');
-      const where = own ? 'r.user_id = ?' : "(? = 'all' OR r.status = ?)";
-      const args = own ? [user.id] : [status, status];
+      const query = field(url.searchParams.get('q') || '', 0, 100);
+      const where = own ? 'r.user_id = ?' : "(? = 'all' OR r.status = ?) AND (? = '' OR instr(lower(r.project_name), lower(?)) > 0 OR r.user_id IN (SELECT id FROM users WHERE instr(lower(email), lower(?)) > 0 OR instr(lower(nickname), lower(?)) > 0 OR instr(public_id, lower(?)) > 0))";
+      const args = own ? [user.id] : [status, status, query, query, query, query, query];
       const [count, rows] = await env.AUTH_DB.batch([
         env.AUTH_DB.prepare(`SELECT COUNT(*) AS total FROM token_requests r WHERE ${where}`).bind(...args),
         env.AUTH_DB.prepare(`SELECT ${columns}${own ? '' : ', u.public_id AS userId, u.email, u.nickname, u.status AS userStatus, reviewer.email AS reviewerEmail'}

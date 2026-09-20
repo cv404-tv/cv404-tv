@@ -1,6 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
 import { MAX_BOARD_BYTES, normalizeBoard, SHARE_ID } from "../lib/tier-board.js";
 import { handleAuth, cleanupAuth } from "./auth.js";
+import { handleManagement } from "./management.js";
 import { handleTokens } from "./tokens.js";
 import { handleTierRanking } from "./tier-ranking.js";
 
@@ -54,6 +55,7 @@ export default {
   },
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith("/api/account/") || url.pathname === "/api/admin/overview" || url.pathname === "/api/admin/audit" || /^\/api\/admin\/users\//.test(url.pathname)) return handleManagement(request, env);
     if (url.pathname === "/api/token-requests" || url.pathname.startsWith("/api/token-requests/") || url.pathname.startsWith("/api/admin/")) return handleTokens(request, env);
     if (url.pathname === "/api/tier-rankings" || url.pathname.startsWith("/api/tier-rankings/")) return handleTierRanking(request, env);
     if (url.pathname.startsWith("/api/auth/") || url.pathname === "/api/account") return handleAuth(request, env);

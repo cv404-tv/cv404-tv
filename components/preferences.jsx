@@ -18,27 +18,40 @@ function save(key, value) {
 }
 
 export function PreferencesProvider({ children }) {
-  const [locale, updateLocale] = useState("zh");
-  const [theme, updateTheme] = useState("dark");
+  const [languagePreference, updateLanguagePreference] = useState("system");
+  const [themePreference, updateThemePreference] = useState("system");
+  const [systemLocale, updateSystemLocale] = useState("zh");
+  const [systemTheme, updateSystemTheme] = useState("dark");
   const [ready, setReady] = useState(false);
+  const locale = languagePreference === "system" ? systemLocale : languagePreference;
+  const theme = themePreference === "system" ? systemTheme : themePreference;
   const pathname = usePathname();
   useEffect(() => {
-    updateLocale(read("cv404-language") === "en" ? "en" : "zh");
     const media = matchMedia("(prefers-color-scheme: dark)");
-    const stored = read("cv404-theme");
-    updateTheme(
-      ["dark", "light"].includes(stored)
-        ? stored
-        : media.matches
-          ? "dark"
-          : "light",
-    );
-    setReady(true);
-    const follow = () => {
-      if (!read("cv404-theme")) updateTheme(media.matches ? "dark" : "light");
+    const followTheme = () => updateSystemTheme(media.matches ? "dark" : "light");
+    const followLanguage = () => {
+      const supported = (navigator.languages?.length ? navigator.languages : [navigator.language])
+        .map(value => value.toLowerCase().split("-")[0]).find(value => value === "zh" || value === "en");
+      updateSystemLocale(supported || "en");
     };
-    media.addEventListener("change", follow);
-    return () => media.removeEventListener("change", follow);
+    const syncStored = () => {
+      const language = read("cv404-language");
+      const theme = read("cv404-theme");
+      updateLanguagePreference(["zh", "en"].includes(language) ? language : "system");
+      updateThemePreference(["light", "dark"].includes(theme) ? theme : "system");
+    };
+    const onStorage = event => {
+      if (!event.key || ["cv404-language", "cv404-theme"].includes(event.key)) syncStored();
+    };
+    syncStored(); followTheme(); followLanguage(); setReady(true);
+    media.addEventListener("change", followTheme);
+    window.addEventListener("languagechange", followLanguage);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      media.removeEventListener("change", followTheme);
+      window.removeEventListener("languagechange", followLanguage);
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
   useEffect(() => {
     if (!ready) return;
@@ -56,6 +69,8 @@ export function PreferencesProvider({ children }) {
         ? locale === "zh" ? "黑客松活动 · 云谷404" : "Hackathon Events · Cloud Valley 404"
       : pathname.startsWith("/tokens")
         ? locale === "zh" ? "免费 Token 申请 · 云谷404" : "Free Tokens · Cloud Valley 404"
+      : pathname.startsWith("/account")
+        ? (locale === "zh" ? "个人中心 · 云谷404" : "Your account · Cloud Valley 404")
       : pathname.startsWith("/admin")
         ? locale === "zh" ? "管理后台 · 云谷404" : "Admin · Cloud Valley 404"
       : pathname.startsWith("/tier")
@@ -65,16 +80,18 @@ export function PreferencesProvider({ children }) {
         : copy[locale].title;
   }, [locale, pathname]);
   const setLocale = (value) => {
+    if (!["system", "zh", "en"].includes(value)) return;
     save("cv404-language", value);
-    updateLocale(value);
+    updateLanguagePreference(value);
   };
   const setTheme = (value) => {
+    if (!["system", "light", "dark"].includes(value)) return;
     save("cv404-theme", value);
-    updateTheme(value);
+    updateThemePreference(value);
   };
   return (
     <Preferences.Provider
-      value={{ locale, theme, setLocale, setTheme, t: copy[locale] }}
+      value={{ locale, theme, languagePreference, themePreference, ready, setLocale, setTheme, t: copy[locale] }}
     >
       {children}
     </Preferences.Provider>
@@ -84,52 +101,32 @@ export function usePreferences() {
   return useContext(Preferences);
 }
 
-export function PreferenceControls() {
-  const { locale, theme, setLocale, setTheme, t } = usePreferences();
-  return (
-    <div
-      className="preference-controls"
-      role="group"
-      aria-label={t.preferences}
-    >
-      <button
-        type="button"
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        aria-label={theme === "dark" ? t.light : t.dark}
-        title={theme === "dark" ? t.light : t.dark}
-      >
-        {theme === "dark" ? (
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" />
-          </svg>
-        ) : (
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            aria-hidden="true"
-          >
-            <path d="M20 14A8 8 0 0 1 10 4a8.5 8.5 0 1 0 10 10Z" />
-          </svg>
-        )}
-      </button>
-      <button
-        type="button"
-        className="language-button"
-        onClick={() => setLocale(locale === "zh" ? "en" : "zh")}
-        aria-label={locale === "zh" ? "Switch to English" : "切换到中文"}
-        lang={locale === "zh" ? "en" : "zh-CN"}
-      >
-        {locale === "zh" ? "EN" : "中"}
-      </button>
+export function PreferenceSettings() {
+  const { locale, languagePreference, themePreference, ready, setLocale, setTheme } = usePreferences();
+  const t = locale === "zh" ? {
+    title: "个人设置", hint: "默认跟随系统，修改后立即生效，并保存在当前浏览器。",
+    language: "语言", languageHint: "跟随浏览器的语言偏好，支持中文和英文。",
+    theme: "主题", themeHint: "跟随系统的日间或夜间外观。",
+    system: "跟随系统", light: "日间模式", dark: "夜间模式",
+  } : {
+    title: "Personal settings", hint: "Follows your system by default. Changes apply immediately and are saved in this browser.",
+    language: "Language", languageHint: "Uses your browser’s language preferences. Supports Chinese and English.",
+    theme: "Theme", themeHint: "Matches your system’s light or dark appearance.",
+    system: "Follow system", light: "Light", dark: "Dark",
+  };
+  return <section className="token-panel account-settings" id="settings" aria-labelledby="settings-title">
+    <h2 id="settings-title">{t.title}</h2><p className="token-hint">{t.hint}</p>
+    <div className="account-setting-row">
+      <div><label htmlFor="account-language">{t.language}</label><p id="account-language-hint" className="token-hint">{t.languageHint}</p></div>
+      <select id="account-language" aria-describedby="account-language-hint" disabled={!ready} value={languagePreference} onChange={event => setLocale(event.target.value)}>
+        <option value="system">{t.system}</option><option value="zh" lang="zh-CN">中文</option><option value="en" lang="en">English</option>
+      </select>
     </div>
-  );
+    <div className="account-setting-row">
+      <div><label htmlFor="account-theme">{t.theme}</label><p id="account-theme-hint" className="token-hint">{t.themeHint}</p></div>
+      <select id="account-theme" aria-describedby="account-theme-hint" disabled={!ready} value={themePreference} onChange={event => setTheme(event.target.value)}>
+        <option value="system">{t.system}</option><option value="light">{t.light}</option><option value="dark">{t.dark}</option>
+      </select>
+    </div>
+  </section>;
 }

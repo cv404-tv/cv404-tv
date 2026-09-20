@@ -47,3 +47,22 @@
 `requestedTokens` / `grantedTokens` 为 1–1,000,000,000 的整数；说明最长 2000 字符，API Key 最长 4096 字符。角色由服务端配置实时计算，客户端不能自行设为管理员。
 
 `npm test` 使用真实本地 D1 runtime 验证申请→审核→领取、加密存储、账户隔离、管理员撤权、拒绝重申、并发、搜索分页、输入校验、CSRF、限流及失效账户。
+
+## 个人中心与账户管理
+
+新增 `/account`，已登录用户可从页头账户入口进入。支持修改昵称、查看注册时间、申请/额度/投票统计、分页查看有效登录会话、退出其他会话和退出当前登录，并提供 Token、锐评、指南和管理员后台快捷入口。会话只展示登录时间与到期时间，不采集设备指纹；会话数量不代表设备数量。额度统计不是供应商余额。
+
+后台新增「数据概览」「操作记录」；用户列表可按状态筛选、查看该用户申请，申请列表可搜索项目、邮箱、昵称或用户 ID。管理员可填写原因后启用/停用普通用户、使其全部会话失效。不能操作自己或配置中的任何管理员。停用/强制下线会删除现有登录会话和未完成的验证码挑战；重新启用不会恢复旧会话。停用不会撤销已发放的供应商 API Key，供应商侧撤销需单独处理。
+
+上线前执行 `npx wrangler d1 migrations apply AUTH_DB --remote`，包含新增的 `0005_management.sql`；本地验证使用 `--local`。该迁移创建操作记录表，并回填历史 Token 审批。用户管理操作和日志在同一事务中保存，审批日志由数据库触发器在审批事务中写入；记录包含操作人、目标用户、动作、原因（或申请编号）与时间，不包含 API Key。
+
+| 接口 | 作用 |
+| --- | --- |
+| `GET /api/account/overview` | 本人账户信息、申请/额度/投票/会话统计 |
+| `GET /api/account/sessions?page=1` | 本人有效会话（不返回会话凭据或摘要） |
+| `DELETE /api/account/sessions` | JSON `{}`，退出本人其他会话，保留当前会话 |
+| `GET /api/admin/overview` | 全站用户和申请统计 |
+| `GET /api/admin/audit?page=1` | 分页操作记录 |
+| `PATCH /api/admin/users/:userId` | `{ action: 'enable' / 'disable' / 'revoke_sessions', reason }`，原因 1–300 字 |
+
+`GET /api/admin/users` 新增 `status=all/active/disabled`；`GET /api/admin/token-requests` 新增 `q` 搜索参数。所有新接口沿用同源、会话、管理员鉴权；写操作有限流，空状态和网络失败可重新刷新。

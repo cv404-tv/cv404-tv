@@ -24,7 +24,7 @@ export const metadata = {
   },
 };
 export const viewport = { themeColor: "#22272a" };
-const themeScript = `try{var p=localStorage.getItem('cv404-theme');var t=p==='light'||p==='dark'?p:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t;}catch(e){}`;
+const themeScript = `var p;try{p=localStorage.getItem('cv404-theme')}catch(e){}var t=p==='light'||p==='dark'?p:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t;`;
 
 export default function RootLayout({ children }) {
   return (

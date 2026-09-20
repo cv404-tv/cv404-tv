@@ -143,9 +143,6 @@ html[data-theme="light"] .standby {
   color: #f2ebdd;
 }
 @media (hover: hover) {
-  .preference-controls button:hover {
-    background: #88888822;
-  }
   html[data-theme="light"] .channel-tabs button:hover {
     color: #22272a;
     background-color: #22272a0b;
@@ -189,3 +186,11 @@ html[data-theme="light"] .standby {
     font-size: 11px;
   }
 }
+
+.account-settings { margin-top: 24px; scroll-margin-top: 24px; }
+.account-setting-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(160px, 240px); gap: 24px; align-items: center; padding: 22px 0; border-top: 1px solid var(--stroke-soft); }
+.account-setting-row:first-of-type { margin-top: 24px; }
+.account-setting-row:last-child { padding-bottom: 0; }
+.account-setting-row label { font-size: 14px; font-weight: 600; }
+.account-setting-row p { margin: 8px 0 0; }
+@media (max-width: 560px) { .account-setting-row { grid-template-columns: 1fr; gap: 14px; } }

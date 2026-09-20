@@ -67,3 +67,34 @@
 .token-review-fields { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
 @media (max-width: 800px) { .token-application-layout { grid-template-columns: 1fr; } .token-page { padding: 36px 20px 64px; } .token-panel { padding: 22px; } }
 @media (max-width: 560px) { .token-page { padding: 28px 16px 56px; } .token-panel { padding: 20px 16px; } .token-review-fields { grid-template-columns: 1fr; gap: 0; } .token-toolbar { flex-wrap: wrap; } .token-toolbar form { min-width: 100%; } .token-toolbar label { flex-wrap: wrap; } }
+
+/* Shared account and administration surfaces. */
+.management-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0 0 20px; }
+.management-stats > div { border: 1px solid var(--stroke); border-radius: 12px; padding: 24px; background: var(--glass-soft); }
+.management-stats dt { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.management-stats dd { margin: 16px 0 0; font: 500 clamp(22px, 2.5vw, 32px) var(--mono); overflow-wrap: anywhere; }
+.management-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 30px; }
+.management-columns > * { min-width: 0; }
+.management-profile { margin-top: 24px; }
+.management-profile small, .management-cell-note { display: block; font-size: 12px; color: var(--muted); margin: 8px 0; }
+.management-links { display: grid; gap: 8px; }
+.management-links a { display: grid; gap: 10px; padding: 18px 0; border-bottom: 1px solid var(--stroke-soft); text-decoration: none; }
+.management-links a:hover strong { color: var(--accent); }
+.management-links a > span { color: var(--muted); line-height: 1.7; font-size: 13px; }
+.management-links strong { display: flex; justify-content: space-between; gap: 16px; }
+.management-security { margin-top: 24px; }
+.management-sessions { list-style: none; padding: 0; }
+.management-sessions li { display: grid; grid-template-columns: 1fr 2fr 2fr; gap: 16px; padding: 18px 0; border-bottom: 1px solid var(--stroke-soft); font-size: 13px; }
+.management-sessions span { color: var(--muted); line-height: 1.7; }
+.management-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.management-security > .management-actions { margin-top: 24px; }
+.management-row-actions { display: flex; flex-wrap: wrap; gap: 8px; min-width: 140px; }
+.management-confirm { margin: 24px 0; border-color: var(--accent); }
+.management-confirm h2 { overflow-wrap: anywhere; }
+.token-status.is-active { background: #5ca88025; }
+.token-status.is-disabled { background: #c8383218; }
+.token-tabs { flex-wrap: wrap; }
+.token-page button:focus-visible, .token-page a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 1000px) { .token-toolbar { flex-wrap: wrap; } .token-toolbar form { min-width: 100%; max-width: none; } }
+@media (max-width: 800px) { .management-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .management-columns { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .management-stats { gap: 10px; } .management-stats > div { padding: 18px 14px; } .management-sessions li { grid-template-columns: 1fr; gap: 6px; } }

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { BrandMark } from "./brand-mark";
-import { PreferenceControls, usePreferences } from "./preferences";
+import { usePreferences } from "./preferences";
 import { AccountButton, useAuth } from "./auth";
 
 export function Backdrop() {
@@ -47,7 +47,6 @@ export function Header({ guide = false, tool = false, game = false }) {
         </Link>}
       </nav>
       <div className="header-utilities">
-        <PreferenceControls />
         <AccountButton />
       </div>
     </header>

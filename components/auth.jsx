@@ -1,4 +1,5 @@
 "use client";
+import Link from 'next/link';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { usePreferences } from './preferences';
 import { authCopy } from '../lib/auth-copy';
@@ -166,7 +167,7 @@ export function AuthProvider({ children }) {
     : error === 'invalid_code' ? t.errors.invalid_code : '';
   const fieldError = (!challenge && error === 'invalid_email') || (challenge && error === 'invalid_code');
 
-  return <AuthContext.Provider value={{ user, ready, show }}>
+  return <AuthContext.Provider value={{ user, ready, show, refresh, updateUser }}>
     {children}
     <dialog ref={dialog} className="auth-dialog" aria-labelledby="auth-title" aria-describedby="auth-description"
       onCancel={event => { if (busyRef.current) event.preventDefault(); else setOpen(false); }}
@@ -237,6 +238,9 @@ export function AccountButton() {
   const { user, ready, show } = useContext(AuthContext);
   const { locale } = usePreferences();
   const t = authCopy[locale];
+  if (ready && user) return <Link href="/account" className="account-button" aria-label={t.account} title={t.account}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3.3" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></svg><span>{user.nickname || t.account}</span>
+  </Link>;
   return <button type="button" className="account-button" onClick={show} aria-label={user ? t.account : t.login} title={user ? t.account : t.login}>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3.3" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></svg>
     <span>{ready && user ? user.nickname || t.account : t.login}</span>
