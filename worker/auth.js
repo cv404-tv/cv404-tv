@@ -1,3 +1,4 @@
+import { isAdmin } from '../lib/admin-access.js';
 import { cleanEmail, isValidEmail, isValidCode } from '../lib/auth-validation.js';
 
 const MINUTE = 60;
@@ -141,7 +142,7 @@ async function sendCode(request, env, body, now) {
   });
 }
 
-function publicUser(row) { return { id: row.id, userId: row.public_id, email: row.email, nickname: row.nickname }; }
+function publicUser(row, env) { return { id: row.id, userId: row.public_id, email: row.email, nickname: row.nickname, isAdmin: isAdmin(row, env) }; }
 
 async function verifyCode(request, env, body, now) {
   if (!TOKEN_PATTERN.test(body.challengeId || '') || !isValidCode(body.code)) throw new AuthError('invalid_code');
@@ -182,7 +183,7 @@ async function verifyCode(request, env, body, now) {
   }
   const user = result[3].results[0];
   if (!user) throw new AuthError('invalid_code');
-  const response = json({ user: publicUser(user) });
+  const response = json({ user: publicUser(user, env) });
   const url = new URL(request.url);
   response.headers.append('Set-Cookie', setCookie(url, 'session', token, SESSION_TTL));
   response.headers.append('Set-Cookie', setCookie(url, 'login', '', 0));
@@ -217,7 +218,7 @@ export async function handleAuth(request, env) {
     if (url.pathname === '/api/auth/send-code') return await sendCode(request, env, body, now);
     if (url.pathname === '/api/auth/verify-code') return await verifyCode(request, env, body, now);
     const session = await currentSession(request, env, now);
-    if (url.pathname === '/api/auth/me') return json({ user: session ? publicUser(session) : null });
+    if (url.pathname === '/api/auth/me') return json({ user: session ? publicUser(session, env) : null });
     if (url.pathname === '/api/auth/logout') {
       const token = cookie(request, 'session');
       if (TOKEN_PATTERN.test(token)) await env.AUTH_DB.prepare('DELETE FROM sessions WHERE token_hash = ?').bind(await digest(token)).run();
@@ -229,7 +230,7 @@ export async function handleAuth(request, env) {
         if (typeof body.nickname !== 'string' || body.nickname.trim().length > 32 || /[\p{Cc}\p{Cf}]/u.test(body.nickname)) throw new AuthError('invalid_nickname');
         const nickname = body.nickname.trim();
         await env.AUTH_DB.prepare('UPDATE users SET nickname = ? WHERE id = ?').bind(nickname, session.id).run();
-        return json({ user: publicUser({ ...session, nickname }) });
+        return json({ user: publicUser({ ...session, nickname }, env) });
       }
     }
     return json({ success: true }, 200, { 'Set-Cookie': setCookie(url, 'session', '', 0) });

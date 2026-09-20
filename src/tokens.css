@@ -1,0 +1,69 @@
+.token-page { position: relative; max-width: 1240px; margin: 0 auto; padding: 64px 32px 100px; min-height: 65vh; }
+.token-heading { max-width: 760px; margin-bottom: 40px; }
+.token-eyebrow { font: 12px var(--mono); letter-spacing: .14em; color: var(--muted); }
+.token-heading h1 { font-size: clamp(32px, 4vw, 52px); letter-spacing: -.04em; margin: 18px 0; }
+.token-heading > p:last-child { color: var(--muted); line-height: 1.9; }
+.token-page h2 { font-size: 21px; margin: 0 0 18px; }
+.token-page h3 { font-size: 18px; margin: 0; overflow-wrap: anywhere; }
+.token-panel { padding: 28px; border: 1px solid var(--stroke); border-radius: 16px; background: var(--glass-soft); }
+.token-page button { padding: 11px 16px; min-height: 44px; background: var(--glass); border: 1px solid var(--stroke); border-radius: 8px; font-size: 13px; }
+.token-page button:hover:not(:disabled) { border-color: var(--edge); }
+.token-page button:disabled { opacity: .45; cursor: not-allowed; }
+.token-page .token-primary { background: var(--accent); color: #fff; border-color: transparent; }
+.token-page .token-decline { color: var(--fg); border-color: var(--accent); }
+.token-application-layout { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 32px; align-items: start; }
+.token-history { min-width: 0; }
+.token-history article + article { margin-top: 16px; }
+.token-form { margin-top: 24px; }
+.token-form fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.token-form label, .token-credential label { display: grid; gap: 10px; margin-bottom: 20px; font-size: 14px; }
+.token-page input:not([type=radio]), .token-page textarea, .token-page select { width: 100%; padding: 12px 14px; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--stroke); border-radius: 8px; min-height: 44px; }
+.token-page input:focus-visible, .token-page textarea:focus-visible, .token-page select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.token-page input::placeholder, .token-page textarea::placeholder { color: var(--faint); }
+.token-page textarea { resize: vertical; line-height: 1.7; }
+.token-hint { color: var(--muted); line-height: 1.8; font-size: 12px; }
+.token-error, .token-success { padding: 14px 18px; border-radius: 8px; line-height: 1.7; }
+.token-error { background: #c8383218; border: 1px solid #c8383288; }
+.token-success { background: #5ca88018; border: 1px solid #5ca88066; }
+.token-section-heading, .token-card-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.token-section-heading { margin-bottom: 20px; }
+.token-section-heading h2 { margin: 0; }
+.token-status { flex-shrink: 0; padding: 6px 10px; border: 1px solid var(--stroke); border-radius: 6px; font-size: 11px; }
+.token-status.is-pending { background: #c99f3420; }
+.token-status.is-approved { background: #5ca88025; }
+.token-status.is-rejected { background: #c8383218; }
+.token-prose { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--muted); line-height: 1.8; font-size: 14px; }
+.token-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; padding: 20px 0; border-top: 1px solid var(--stroke-soft); }
+.token-facts dt { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+.token-facts dd { margin: 0; font: 13px var(--mono); overflow-wrap: anywhere; }
+.token-note { border-left: 2px solid var(--accent); padding-left: 16px; font-size: 13px; }
+.token-note p { margin-bottom: 0; }
+.token-credential { margin-top: 24px; }
+.token-credential label { margin-top: 16px; }
+.token-credential textarea { font: 12px var(--mono); }
+.token-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; font-size: 12px; color: var(--muted); }
+.token-pager > div { display: flex; gap: 8px; }
+.token-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--stroke); padding-bottom: 16px; margin-bottom: 24px; }
+.token-tabs .is-selected { background: var(--fg); color: var(--bg); }
+.token-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+.token-toolbar form { display: flex; gap: 8px; flex: 1; max-width: 540px; }
+.token-toolbar form button { white-space: nowrap; }
+.token-toolbar label { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.token-toolbar select { width: auto; }
+.token-table-wrap { overflow-x: auto; border: 1px solid var(--stroke); border-radius: 12px; }
+.token-table-wrap > p { padding: 24px; }
+.token-table { border-collapse: collapse; width: 100%; text-align: left; font-size: 13px; }
+.token-table th { background: var(--glass); color: var(--muted); font-size: 12px; font-weight: 500; white-space: nowrap; }
+.token-table th, .token-table td { padding: 16px 20px; border-bottom: 1px solid var(--stroke-soft); }
+.token-table td { max-width: 320px; overflow-wrap: anywhere; }
+.token-admin-requests { display: grid; gap: 24px; }
+.token-applicant { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--stroke); overflow-wrap: anywhere; font-size: 13px; }
+.token-applicant span { color: var(--muted); }
+.token-review { border-top: 1px solid var(--stroke); padding-top: 24px; }
+.token-review legend { font-size: 14px; margin-bottom: 18px; }
+.token-decision { display: flex; gap: 24px; }
+.token-decision label { display: flex; gap: 8px; align-items: center; min-height: 44px; }
+.token-decision input { accent-color: var(--accent); }
+.token-review-fields { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+@media (max-width: 800px) { .token-application-layout { grid-template-columns: 1fr; } .token-page { padding: 36px 20px 64px; } .token-panel { padding: 22px; } }
+@media (max-width: 560px) { .token-page { padding: 28px 16px 56px; } .token-panel { padding: 20px 16px; } .token-review-fields { grid-template-columns: 1fr; gap: 0; } .token-toolbar { flex-wrap: wrap; } .token-toolbar form { min-width: 100%; } .token-toolbar label { flex-wrap: wrap; } }

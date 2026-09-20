@@ -54,6 +54,10 @@ export function PreferencesProvider({ children }) {
       ? locale === "zh" ? "404 信号搜寻 · 云谷404" : "404 Signal Search · Cloud Valley 404"
       : pathname.startsWith("/events")
         ? locale === "zh" ? "黑客松活动 · 云谷404" : "Hackathon Events · Cloud Valley 404"
+      : pathname.startsWith("/tokens")
+        ? locale === "zh" ? "免费 Token 申请 · 云谷404" : "Free Tokens · Cloud Valley 404"
+      : pathname.startsWith("/admin")
+        ? locale === "zh" ? "管理后台 · 云谷404" : "Admin · Cloud Valley 404"
       : pathname.startsWith("/tier")
       ? locale === "zh" ? "锐评小工具 · 云谷404" : "Hot Take Tool · Cloud Valley 404"
       : pathname.startsWith("/guide")

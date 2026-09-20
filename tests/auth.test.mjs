@@ -69,7 +69,7 @@ test('registration, cookie flags, no credential leaks, nickname, logout and repl
   assert.equal(r.headers.get('Cache-Control'), 'no-store');
   const user = (await r.json()).user;
   assert.equal(user.email, 'alice@example.com');
-  assert.deepEqual(Object.keys(user).sort(), ['email', 'id', 'nickname', 'userId']);
+  assert.deepEqual(Object.keys(user).sort(), ['email', 'id', 'isAdmin', 'nickname', 'userId']);
   assert.match(user.userId, /^[a-z0-9]{8}$/);
   assert.equal((await me(sessionCookie)).user.id, user.id);
   const nickname = await call('/api/account', { nickname: 'Alice' }, { cookie: sessionCookie, method: 'PATCH' });

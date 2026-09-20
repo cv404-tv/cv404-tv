@@ -7,7 +7,8 @@
   "dev": { "ip": "127.0.0.1", "port": 8787, "host": "127.0.0.1:8787" },
   "vars": {
     "AUTH_ORIGIN": "https://cv404.tv",
-    "AUTH_EMAIL_FROM": "login@cv404.tv"
+    "AUTH_EMAIL_FROM": "login@cv404.tv",
+    "ADMIN_EMAILS": "kinggreenhall@gmail.com"
   },
   "d1_databases": [{
     "binding": "AUTH_DB",

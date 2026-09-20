@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { BrandMark } from "./brand-mark";
 import { PreferenceControls, usePreferences } from "./preferences";
-import { AccountButton } from "./auth";
+import { AccountButton, useAuth } from "./auth";
 
 export function Backdrop() {
   return (
@@ -16,6 +16,7 @@ export function Backdrop() {
 }
 export function Header({ guide = false, tool = false, game = false }) {
   const { t, locale } = usePreferences();
+  const { user } = useAuth();
   return (
     <header className="site-header">
       <Link
@@ -39,6 +40,8 @@ export function Header({ guide = false, tool = false, game = false }) {
         <Link className="header-game-link" href={game ? "/events" : "/"}>
           {game ? (locale === "zh" ? "黑客松活动" : "Events") : (locale === "zh" ? "搜寻信号" : "Signal Search")}
         </Link>
+        <Link href="/tokens">{locale === "zh" ? "免费 Token" : "Free tokens"}</Link>
+        {user?.isAdmin && <Link href="/admin">{locale === "zh" ? "管理后台" : "Admin"}</Link>}
         {!tool && <Link className="glass join-button" href="/tier">
           {t.rate} <span aria-hidden="true">↗</span>
         </Link>}
@@ -59,6 +62,7 @@ export function Footer() {
       <Link href="/">{locale === "zh" ? "404 信号搜寻" : "404 Signal Search"} ↗</Link>
       <Link href="/events">{locale === "zh" ? "黑客松活动" : "Hackathon events"} ↗</Link>
       <Link href="/tier">{locale === "zh" ? "锐评小工具" : "Hot Take Tool"} ↗</Link>
+      <Link href="/tokens">{locale === "zh" ? "免费 Token" : "Free tokens"} ↗</Link>
       <Link href="/guide">{t.guideLink} ↗</Link>
     </footer>
   );
