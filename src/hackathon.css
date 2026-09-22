@@ -1,0 +1,129 @@
+/* Edition 02: an editorial field guide in the existing 404 palette. */
+.jev-site { --j-bg: #f2ebdd; --j-ink: #22272a; --j-muted: #64635e; --j-line: #22272a29; --j-panel: #faf7f0; --j-red: #b9312b; background: var(--j-bg); color: var(--j-ink); min-height: 100vh; }
+[data-theme="dark"] .jev-site { --j-bg: #1b2022; --j-ink: #f2ebdd; --j-muted: #b4b3ab; --j-line: #f2ebdd30; --j-panel: #252b2d; --j-red: #ff8075; }
+.jev-site .site-header, .jev-site .site-footer { color: var(--j-ink); }
+.jev-site .header-nav a, .jev-site .header-location, .jev-site .account-button, .jev-site .site-footer { color: var(--j-muted); }
+.jev-page { width: min(1180px, calc(100% - 96px)); margin: 0 auto; }
+.jev-page section[id] { scroll-margin-top: 30px; }
+.jev-edition { display: flex; justify-content: space-between; gap: 20px; padding: 24px 0; border-top: 1px solid var(--j-line); font: 11px var(--mono); letter-spacing: .07em; }
+.jev-edition a { color: var(--j-muted); }
+.jev-hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 65px; align-items: center; padding: 40px 0 70px; }
+.jev-badge { display: inline-flex; align-items: center; gap: 8px; font: 11px var(--mono); letter-spacing: .04em; }
+.jev-badge i { width: 6px; height: 6px; background: var(--j-red); border-radius: 50%; }
+.jev-hero h1 { margin: 26px 0; font-size: clamp(42px, 4.7vw, 68px); line-height: 1.2; letter-spacing: -.065em; font-weight: 750; }
+.jev-page em { color: var(--j-red); font-style: normal; }
+.jev-hero-copy > p { max-width: 440px; font-size: 16px; line-height: 1.9; color: var(--j-muted); }
+.jev-actions { display: flex; align-items: center; gap: 28px; margin-top: 32px; }
+.jev-button { display: inline-flex; align-items: center; justify-content: space-between; gap: 36px; padding: 17px 22px; border: 1px solid #b9312b; border-radius: 3px; background: #b9312b; color: #fff8ee; font-size: 14px; font-weight: 600; line-height: 1.3; }
+.jev-button:hover { background: #9f2723; }
+.jev-button:disabled, .jev-page fieldset:disabled { opacity: .65; cursor: wait; }
+.jev-text-link { padding: 8px 0; background: transparent; color: inherit; font-size: 13px; text-decoration: underline; text-underline-offset: 6px; }
+.jev-art { position: relative; overflow: hidden; min-height: 415px; padding: 23px; border: 1px solid var(--j-line); background-image: radial-gradient(var(--j-line) .8px, transparent .8px); background-size: 12px 12px; border-radius: 3px; }
+.jev-art-top, .jev-art-bottom { display: flex; justify-content: space-between; align-items: center; font: 9px var(--mono); letter-spacing: .08em; }
+.jev-art-top span:last-child { color: var(--j-red); }
+.jev-art-input { width: max-content; margin: 34px auto 0; padding: 10px 18px; background: var(--j-bg); border: 1px solid var(--j-line); font: 11px var(--mono); }
+.jev-wire { height: 24px; width: 1px; background: var(--j-red); margin: auto; }
+.jev-core { width: 166px; margin: auto; text-align: center; background: #b9312b; color: #f2ebdd; padding: 16px 10px 20px; box-shadow: 7px 7px 0 var(--j-ink); border: 1px solid var(--j-ink); transform: rotate(-4deg); }
+.jev-core > span { display: block; font-size: 66px; letter-spacing: -.08em; font-weight: 750; line-height: 1.1; }
+.jev-core-dot { color: #e9b1a3; }
+.jev-core small { font: 8px var(--mono); letter-spacing: .07em; }
+.jev-branches { display: flex; justify-content: space-around; margin: 28px 25px 0; border-top: 1px solid var(--j-ink); }
+.jev-branches span { position: relative; padding: 8px 10px; margin-top: 18px; background: var(--j-bg); border: 1px solid var(--j-line); font: 10px var(--mono); }
+.jev-branches span:before { content: ''; position: absolute; bottom: 100%; left: 50%; height: 19px; width: 1px; background: var(--j-ink); }
+.jev-art-bottom { margin-top: 24px; line-height: 1.6; }
+.jev-art-bottom b { font-size: 36px; line-height: 1; font-weight: 400; letter-spacing: -.08em; }
+.jev-logistics { border-block: 1px solid var(--j-line); padding: 24px 0; display: grid; grid-template-columns: repeat(3, 1fr) 2fr; gap: 24px; align-items: center; }
+.jev-logistics div { display: grid; gap: 9px; }
+.jev-logistics div > span { color: var(--j-muted); font-size: 11px; }
+.jev-logistics strong { font-size: 16px; font-weight: 600; }
+.jev-logistics > p { margin: 0; font-size: 11px; line-height: 1.9; color: var(--j-muted); border-left: 1px solid var(--j-line); padding-left: 24px; }
+.jev-section { padding: 78px 0; }
+.jev-kicker { font: 10px var(--mono); letter-spacing: .1em; color: var(--j-muted); }
+.jev-section-heading h2, .jev-lab h2, .jev-faq h2 { font-size: clamp(25px, 3vw, 36px); margin: 18px 0 14px; letter-spacing: -.04em; line-height: 1.35; }
+.jev-section-heading > p { max-width: 630px; line-height: 1.85; color: var(--j-muted); font-size: 14px; }
+.jev-primitives { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 35px; border: 1px solid var(--j-line); }
+.jev-primitives article { padding: 28px; }
+.jev-primitives article + article { border-left: 1px solid var(--j-line); }
+.jev-primitive-name { display: flex; justify-content: space-between; color: var(--j-red); font: 26px var(--mono); }
+.jev-primitive-name > span { font-size: 20px; }
+.jev-primitives h3 { font-size: 17px; font-weight: 600; margin: 28px 0 10px; }
+.jev-primitives p, .jev-tracks p, .jev-plan p { font-size: 13px; color: var(--j-muted); line-height: 1.9; margin: 0; }
+.jev-note { font-size: 11px; line-height: 1.9; color: var(--j-muted); margin-top: 18px; }
+.jev-note a { text-decoration: underline; text-underline-offset: 3px; }
+.jev-lab { padding: 38px; background: var(--j-ink); color: var(--j-bg); border-radius: 3px; }
+.jev-lab .jev-kicker { color: inherit; opacity: .7; }
+.jev-lab-heading p { font-size: 13px; opacity: .7; line-height: 1.7; }
+.jev-demo-tabs { display: flex; gap: 8px; margin: 26px 0; flex-wrap: wrap; }
+.jev-demo-tabs button { border: 1px solid currentColor; color: inherit; padding: 9px 14px; background: transparent; font-size: 12px; border-radius: 2px; }
+.jev-demo-tabs button[aria-pressed="true"] { background: var(--j-bg); color: var(--j-ink); }
+.jev-demo { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; border-block: 1px solid #8886; padding: 26px 0; min-height: 221px; }
+.jev-demo > div + div { border-left: 1px solid #8886; padding-left: 30px; }
+.jev-ticket { font-size: 18px; line-height: 1.7; margin: 24px 0; }
+.jev-demo code { font: 10px var(--mono); opacity: .7; }
+.jev-demo h3 { font-size: 15px; line-height: 1.7; font-weight: 500; }
+.jev-prob { margin: 10px 0; }
+.jev-prob > div { display: flex; justify-content: space-between; font: 10px var(--mono); }
+.jev-prob > i { display: block; height: 3px; margin-top: 7px; background: #8885; }
+.jev-prob > i:before { display: block; content: ''; height: 100%; width: var(--value); background: #e07160; transition: width .2s; }
+.jev-demo-action .jev-kicker { display: block; }
+.jev-action-icon { display: block; font-size: 35px; margin: 12px 0 0; color: #da786a; }
+.jev-demo-caption { font: 10px var(--mono); opacity: .65; margin: 18px 0 0; line-height: 1.6; }
+.jev-tracks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 32px; }
+.jev-tracks > a { border: 1px solid var(--j-line); padding: 26px; background: var(--j-panel); transition: border-color .2s, transform .2s; }
+.jev-tracks > a:hover { border-color: var(--j-red); transform: translateY(-3px); }
+.jev-track-number { display: flex; justify-content: space-between; font: 28px var(--mono); color: var(--j-red); }
+.jev-track-number i { font-size: 18px; font-style: normal; }
+.jev-tracks h3 { margin: 30px 0 12px; font-size: 19px; letter-spacing: -.04em; }
+.jev-tracks code { display: block; margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--j-line); font: 10px var(--mono); color: var(--j-muted); }
+.jev-plan { border-top: 1px solid var(--j-line); padding-top: 45px; display: grid; grid-template-columns: .9fr 1.1fr; column-gap: 80px; }
+.jev-plan ol { list-style: none; margin: 0; padding: 0; }
+.jev-plan li { display: flex; gap: 24px; padding: 23px 0; border-bottom: 1px solid var(--j-line); }
+.jev-plan li:first-child { padding-top: 0; }
+.jev-plan li > span { font: 12px var(--mono); color: var(--j-red); padding-top: 4px; }
+.jev-plan h3 { font-size: 16px; margin: 0 0 10px; }
+.jev-plan aside { grid-column: 1 / -1; border: 1px solid var(--j-line); padding: 25px 30px; margin-top: 40px; display: grid; grid-template-columns: 25px 220px 1fr; gap: 20px; align-items: center; }
+.jev-plan aside > span { font-size: 28px; color: var(--j-red); }
+.jev-plan aside h3 { margin: 0; }
+.jev-registration { border-top: 2px solid var(--j-ink); display: grid; grid-template-columns: 1fr 1.1fr; gap: 70px; padding: 65px 0; }
+.jev-registration h2 { font-size: clamp(29px, 3.6vw, 46px); line-height: 1.4; letter-spacing: -.045em; margin: 22px 0; }
+.jev-registration > div > p { font-size: 14px; line-height: 1.9; color: var(--j-muted); }
+.jev-registration-note { padding: 23px 0; border-top: 1px solid var(--j-line); margin-top: 40px; }
+.jev-registration-note p { max-width: 380px; font-size: 12px; line-height: 1.9; color: var(--j-muted); }
+.jev-form-card { padding: 32px; background: var(--j-panel); border: 1px solid var(--j-line); align-self: start; }
+.jev-form-card > .jev-button { margin-top: 16px; }
+.jev-form-index { font: 10px var(--mono); letter-spacing: .09em; color: var(--j-muted); }
+.jev-form-email { overflow-wrap: anywhere; font-size: 12px; color: var(--j-muted); margin-bottom: 24px; }
+.jev-form fieldset { padding: 0; margin: 0; border: 0; display: grid; gap: 20px; min-width: 0; }
+.jev-form label { display: grid; gap: 9px; font-size: 12px; min-width: 0; }
+.jev-form input:not([type="checkbox"]), .jev-form select, .jev-form textarea { width: 100%; min-width: 0; border: 1px solid var(--j-line); border-radius: 2px; padding: 12px; background: var(--j-bg); color: var(--j-ink); font: 14px var(--sans); line-height: 1.6; }
+.jev-form textarea { resize: vertical; }
+.jev-form textarea::placeholder { color: var(--j-muted); font-size: 12px; }
+.jev-form input:focus-visible, .jev-form select:focus-visible, .jev-form textarea:focus-visible { outline: 2px solid var(--j-red); outline-offset: 2px; }
+.jev-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.jev-form .jev-consent { display: flex; align-items: start; gap: 10px; line-height: 1.8; color: var(--j-muted); font-size: 11px; }
+.jev-consent input { width: 16px; height: 16px; flex-shrink: 0; margin: 3px 0 0; accent-color: #b9312b; }
+.jev-receipt-mark { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--j-red); border-radius: 50%; color: var(--j-red); }
+.jev-receipt > p, .jev-receipt dd { font-size: 13px; line-height: 1.8; overflow-wrap: anywhere; }
+.jev-receipt dt { color: var(--j-muted); font-size: 10px; margin-top: 18px; }
+.jev-receipt dd { margin: 6px 0 0; }
+.jev-receipt code { font-size: 10px; }
+.jev-feedback { padding: 18px; border: 1px solid var(--j-line); font-size: 13px; }
+.jev-preserve { white-space: pre-wrap; overflow-wrap: anywhere; }
+.jev-faq { border-top: 1px solid var(--j-line); display: grid; grid-template-columns: 1fr 1.1fr; gap: 70px; padding: 55px 0; }
+.jev-faq h2 { font-size: 25px; }
+.jev-faq details { border-bottom: 1px solid var(--j-line); }
+.jev-faq summary { list-style: none; display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 20px 0; cursor: pointer; }
+.jev-faq summary::-webkit-details-marker { display: none; }
+.jev-faq details[open] summary > span { transform: rotate(45deg); }
+.jev-faq details p { font-size: 13px; line-height: 1.9; color: var(--j-muted); margin: 0 0 20px; }
+.jev-sources { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; padding: 25px 0 40px; border-top: 1px solid var(--j-line); }
+.jev-sources > div { margin-right: auto; }
+.jev-sources p, .jev-sources a { font-size: 10px; color: var(--j-muted); }
+.jev-site .site-footer { border-top: 1px solid var(--j-line); }
+.jev-event-banner { width: min(980px, calc(100% - 40px)); margin: 10px auto 25px; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border: 1px solid var(--stroke); background: var(--glass-soft); border-radius: 8px; }
+.jev-event-banner span { font: 10px var(--mono); color: var(--muted); }
+.jev-event-banner strong { display: block; font-size: 18px; margin-top: 6px; }
+.jev-event-banner > b { font-size: 12px; white-space: nowrap; }
+@media(max-width: 1000px) { .jev-page { width: calc(100% - 56px); } .jev-hero { gap: 30px; } .jev-art { min-height: 390px; padding: 18px; } .jev-registration, .jev-faq { gap: 35px; } .jev-plan { column-gap: 40px; } }
+@media(max-width: 720px) { .jev-page { width: calc(100% - 36px); } .jev-edition { font-size: 9px; padding-block: 18px; } .jev-hero { grid-template-columns: 1fr; gap: 35px; padding: 25px 0 40px; } .jev-hero h1 { font-size: clamp(40px, 9.5vw, 64px); } .jev-hero-copy > p { font-size: 14px; } .jev-art { min-height: 360px; max-width: 470px; width: 100%; justify-self: center; } .jev-art-input { margin-top: 18px; } .jev-logistics { grid-template-columns: repeat(3, 1fr); gap: 24px 10px; } .jev-logistics > p { grid-column: 1/-1; border-left: 0; border-top: 1px solid var(--j-line); padding: 18px 0 0; } .jev-section { padding: 48px 0; } .jev-primitives, .jev-tracks, .jev-demo { grid-template-columns: 1fr; } .jev-primitives article { padding: 24px; } .jev-primitives article + article { border-left: 0; border-top: 1px solid var(--j-line); } .jev-primitives h3 { margin-top: 18px; } .jev-lab { padding: 25px; } .jev-demo { gap: 24px; } .jev-demo > div + div { border-left: 0; border-top: 1px solid #8886; padding: 24px 0 0; } .jev-ticket { margin: 18px 0; } .jev-tracks { gap: 12px; } .jev-tracks h3 { margin-top: 18px; } .jev-tracks code { margin-top: 20px; } .jev-plan, .jev-registration, .jev-faq { grid-template-columns: 1fr; gap: 30px; } .jev-plan aside { margin-top: 0; grid-template-columns: 25px 1fr; padding: 22px; gap: 12px; } .jev-plan aside p { grid-column: 1 / -1; } .jev-registration { padding: 45px 0; } .jev-registration-note { margin-top: 24px; padding-bottom: 0; } .jev-form-card { padding: 24px; } .jev-form-row { grid-template-columns: 1fr; gap: 20px; } .jev-sources { gap: 18px; } .jev-sources > div { width: 100%; } .jev-faq { padding-top: 38px; gap: 8px; } .jev-event-banner { padding: 16px; gap: 12px; } .jev-event-banner strong { font-size: 14px; } }
+@media(prefers-reduced-motion: reduce) { .jev-site *, .jev-site *:before { transition: none !important; } }

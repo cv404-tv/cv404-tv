@@ -103,7 +103,7 @@ export async function handleManagement(request, env) {
     const query = field(url.searchParams.get('q') || '', 0, 100);
     const action = url.searchParams.get('action') || 'all';
     const userId = url.searchParams.get('userId') || '';
-    if (!['all', 'enable', 'disable', 'revoke_sessions', 'token_approved', 'token_rejected'].includes(action) || (userId && !/^[a-z0-9]{8}$/.test(userId))) throw new InputError('invalid_input');
+    if (!['all', 'enable', 'disable', 'revoke_sessions', 'token_approved', 'token_rejected', 'hackathon_approved', 'hackathon_rejected'].includes(action) || (userId && !/^[a-z0-9]{8}$/.test(userId))) throw new InputError('invalid_input');
     function dateBoundary(name) {
       const value = url.searchParams.get(name);
       if (!value) return null;

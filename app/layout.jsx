@@ -8,6 +8,7 @@ import "../src/signal-game.css";
 import "../src/auth.css";
 import "../src/header.css";
 import "../src/tokens.css";
+import "../src/hackathon.css";
 import { PreferencesProvider } from "../components/preferences";
 import { AuthProvider } from "../components/auth";
 

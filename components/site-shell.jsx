@@ -40,6 +40,7 @@ export function Header({ guide = false, tool = false, game = false }) {
         <Link className="header-game-link" href={game ? "/events" : "/"}>
           {game ? (locale === "zh" ? "黑客松活动" : "Events") : (locale === "zh" ? "搜寻信号" : "Signal Search")}
         </Link>
+        <Link href="/events/jev">{locale === "zh" ? "第二期报名" : "Hackathon 02"}</Link>
         <Link href="/tokens">{locale === "zh" ? "免费 Token" : "Free tokens"}</Link>
         {user?.isAdmin && <Link href="/admin">{locale === "zh" ? "管理后台" : "Admin"}</Link>}
         {!tool && <Link className="glass join-button" href="/tier">
@@ -63,6 +64,7 @@ export function Footer() {
       <Link href="/tier">{locale === "zh" ? "锐评小工具" : "Hot Take Tool"} ↗</Link>
       <Link href="/tokens">{locale === "zh" ? "免费 Token" : "Free tokens"} ↗</Link>
       <Link href="/guide">{t.guideLink} ↗</Link>
+      <Link href="/privacy">{locale === "zh" ? "App 隐私政策" : "App privacy policy"} ↗</Link>
     </footer>
   );
 }

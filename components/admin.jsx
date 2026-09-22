@@ -1,4 +1,5 @@
 "use client";
+import HackathonAdmin from './hackathon-admin';
 import { useCallback, useRef, useState } from 'react';
 import { useAuth } from './auth';
 import { usePreferences } from './preferences';
@@ -24,8 +25,8 @@ function Dashboard({ t, locale }) {
     if (changes) setFilters(previous => ({ ...previous, [value]: { ...listDefaults(value), ...previous[value], ...changes, page: 1 } }));
     setTab(value);
   }
-  return <><nav className="token-tabs" aria-label={t.adminTitle}>{['overview', 'requests', 'users', 'audit'].map(value => <button key={value} aria-pressed={tab === value} className={tab === value ? 'is-selected' : ''} onClick={() => navigate(value)}>{t[value]}</button>)}</nav>
-    {tab === 'overview' ? <Overview t={t} locale={locale} navigate={navigate} /> : <AdminList key={tab} filters={filters[tab] || listDefaults(tab)} setFilters={setFilters} tab={tab} t={t} locale={locale} navigate={navigate} />}
+  return <><nav className="token-tabs" aria-label={t.adminTitle}>{['overview', 'requests', 'hackathon', 'users', 'audit'].map(value => <button key={value} aria-pressed={tab === value} className={tab === value ? 'is-selected' : ''} onClick={() => navigate(value)}>{value === "hackathon" ? (locale === "zh" ? "黑客松报名" : "Hackathon") : t[value]}</button>)}</nav>
+    {tab === 'hackathon' ? <HackathonAdmin locale={locale} t={t} /> : tab === 'overview' ? <Overview t={t} locale={locale} navigate={navigate} /> : <AdminList key={tab} filters={filters[tab] || listDefaults(tab)} setFilters={setFilters} tab={tab} t={t} locale={locale} navigate={navigate} />}
   </>;
 }
 function Overview({ t, locale, navigate }) {
@@ -57,7 +58,7 @@ function AdminList({ tab, filters, setFilters, t, locale, navigate }) {
   const searchLabel = tab === 'audit' ? t.auditSearch : tab === 'users' ? t.search : t.requestSearch;
   return <><div className="token-section-heading"><h2>{t[tab]}</h2>{data && <span className="token-hint">{t.total(data.total)}</span>}</div>
     <div className="token-toolbar admin-toolbar"><form onSubmit={e => { e.preventDefault(); change({ search: query.trim() }); }}><label className="sr-only" htmlFor="admin-search">{searchLabel}</label><input id="admin-search" type="search" placeholder={searchLabel} maxLength={100} value={query} onChange={e => update({ query: e.target.value })} /><button>{t.searchButton}</button></form>
-    {tab === 'audit' ? <><label>{t.actionType}<select value={action} onChange={e => change({ action: e.target.value })}>{['all', 'enable', 'disable', 'revoke_sessions', 'token_approved', 'token_rejected'].map(value => <option key={value} value={value}>{value === 'all' ? t.allActions : t[value]}</option>)}</select></label><label>{t.fromDate}<input type="date" aria-label={t.fromDate} value={from} max={to || '9999-12-31'} onChange={e => change({ from: e.target.value })} /></label><label>{t.toDate}<input type="date" aria-label={t.toDate} value={to} min={from || undefined} max="9999-12-31" onChange={e => change({ to: e.target.value })} /></label><span className="token-hint">{t.utcDates}</span></>
+    {tab === 'audit' ? <><label>{t.actionType}<select value={action} onChange={e => change({ action: e.target.value })}>{['all', 'enable', 'disable', 'revoke_sessions', 'token_approved', 'token_rejected', 'hackathon_approved', 'hackathon_rejected'].map(value => <option key={value} value={value}>{value === 'all' ? t.allActions : t[value]}</option>)}</select></label><label>{t.fromDate}<input type="date" aria-label={t.fromDate} value={from} max={to || '9999-12-31'} onChange={e => change({ from: e.target.value })} /></label><label>{t.toDate}<input type="date" aria-label={t.toDate} value={to} min={from || undefined} max="9999-12-31" onChange={e => change({ to: e.target.value })} /></label><span className="token-hint">{t.utcDates}</span></>
     : <label>{t.filterStatus}<select aria-label={t.filterStatus} value={status} onChange={e => change({ status: e.target.value })}>{statuses.map(value => <option key={value} value={value}>{t[value]}</option>)}</select></label>}
     {tab === 'requests' && <label>{t.sortOrder}<select value={sort} onChange={e => change({ sort: e.target.value })}><option value="oldest">{t.oldestFirst}</option><option value="newest">{t.newestFirst}</option></select></label>}
     <button onClick={() => change({ ...listDefaults(tab), status: 'all' })}>{t.clear}</button><button disabled={loading} onClick={refresh}>{t.refresh}</button></div>

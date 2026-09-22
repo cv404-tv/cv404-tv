@@ -261,6 +261,7 @@ export default function Television() {
       <Backdrop />
       <Header />
       <main>
+        <Link className="jev-event-banner" href="/events/jev"><div><span>HACKATHON / 002</span><strong>{locale === "zh" ? "Jev 黑客松 · 让 AI 做出下一步决定" : "Jev Hackathon · Give AI a next move"}</strong></div><b>{locale === "zh" ? "报名意向征集 ↗" : "Apply to join ↗"}</b></Link>
         <h1 className="sr-only">{locale === "zh" ? "云谷404迷你黑客松活动" : "Cloud Valley 404 Mini Hackathon"}</h1>
         <div className="intro">
           <span className="broadcast-dot" />

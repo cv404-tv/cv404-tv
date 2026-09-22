@@ -1,3 +1,4 @@
+import { handleHackathon } from "./hackathon.js";
 import { DurableObject } from "cloudflare:workers";
 import { MAX_BOARD_BYTES, normalizeBoard, SHARE_ID } from "../lib/tier-board.js";
 import { handleAuth, cleanupAuth } from "./auth.js";
@@ -55,6 +56,7 @@ export default {
   },
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith("/api/hackathon/") || url.pathname === "/api/admin/hackathon" || url.pathname.startsWith("/api/admin/hackathon/")) return handleHackathon(request, env);
     if (url.pathname.startsWith("/api/account/") || url.pathname === "/api/admin/overview" || url.pathname === "/api/admin/audit" || /^\/api\/admin\/users\//.test(url.pathname)) return handleManagement(request, env);
     if (url.pathname === "/api/token-requests" || url.pathname.startsWith("/api/token-requests/") || url.pathname.startsWith("/api/admin/")) return handleTokens(request, env);
     if (url.pathname === "/api/tier-rankings" || url.pathname.startsWith("/api/tier-rankings/")) return handleTierRanking(request, env);

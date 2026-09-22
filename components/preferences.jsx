@@ -65,6 +65,8 @@ export function PreferencesProvider({ children }) {
     document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
     document.title = pathname === "/" || pathname.startsWith("/signal")
       ? locale === "zh" ? "404 信号搜寻 · 云谷404" : "404 Signal Search · Cloud Valley 404"
+      : pathname.startsWith("/events/jev")
+        ? (locale === "zh" ? "Jev 黑客松 · 第二期 · 云谷404" : "Jev Hackathon · Edition 02 · Cloud Valley 404")
       : pathname.startsWith("/events")
         ? locale === "zh" ? "黑客松活动 · 云谷404" : "Hackathon Events · Cloud Valley 404"
       : pathname.startsWith("/tokens")
@@ -75,6 +77,8 @@ export function PreferencesProvider({ children }) {
         ? locale === "zh" ? "管理后台 · 云谷404" : "Admin · Cloud Valley 404"
       : pathname.startsWith("/tier")
       ? locale === "zh" ? "锐评小工具 · 云谷404" : "Hot Take Tool · Cloud Valley 404"
+      : pathname.startsWith("/privacy")
+        ? "隐私政策 · Privacy Policy"
       : pathname.startsWith("/guide")
         ? copy[locale].guideTitle
         : copy[locale].title;
