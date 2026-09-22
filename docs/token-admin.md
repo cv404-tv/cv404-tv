@@ -66,3 +66,21 @@
 | `PATCH /api/admin/users/:userId` | `{ action: 'enable' / 'disable' / 'revoke_sessions', reason }`，原因 1–300 字 |
 
 `GET /api/admin/users` 新增 `status=all/active/disabled`；`GET /api/admin/token-requests` 新增 `q` 搜索参数。所有新接口沿用同源、会话、管理员鉴权；写操作有限流，空状态和网络失败可重新刷新。
+
+## 后台运营工作台
+
+- 数据概览新增待审工作台：显示待审总数、等待超过 48 小时的数量、最早提交时间和停用账户的待审数量；点击「从最早申请开始」进入按时间正序排列的待审队列。
+- 近 7 天趋势显示每日新用户、新申请、完成审核数量，提供可展开的每日数字表。按 UTC 自然日统计（含今天），无数据日期补零；「近 7 天新用户」使用相同统计范围。页面显示本次统计更新时间，手动刷新更新数据。
+- 用户列表、申请卡片和操作记录中的用户名称可打开详情：账户信息、累计申请、待审数、发放额度、有效会话数，以及最近 5 条申请和最近 5 条操作。可跳转查看该用户的全部申请或操作记录；使用精确用户 ID 筛选，避免与项目名中的相同文字混淆。
+- 操作记录可组合筛选关键词、操作类型、起止日期和目标用户。关键词匹配操作人邮箱、目标用户邮箱/ID、原因或申请编号；日期按 UTC 计算，包含结束日全天。
+- 申请列表支持最早/最新提交排序。各标签的关键词、筛选项、排序和页码在当前后台页面内切换时保留；刷新整个页面后重置。审批成功后留在当前页，最后一页清空时自动回退。审批密钥不写入持久存储。
+- 停用用户的待审申请保留，页面说明需先恢复账户后审批。用户详情接口不返回会话凭据、API Key 或加密密文。
+
+| 接口 | 新增参数 / 内容 |
+| --- | --- |
+| `GET /api/admin/overview` | `overdue`、`oldestPendingAt`、`blockedPending`、`asOf`，以及连续 7 天的 `trend: [{ day, users, applications, reviews }]` |
+| `GET /api/admin/users/:userId` | 精确用户资料、申请/额度/会话/投票汇总、最近 5 条申请及目标用户操作记录 |
+| `GET /api/admin/token-requests` | `userId` 精确筛选，`sort=oldest/newest`；API 默认 `newest` 保持兼容，后台默认 `oldest` |
+| `GET /api/admin/audit` | `q`、`action=all/enable/disable/revoke_sessions/token_approved/token_rejected`、`userId`、`from=YYYY-MM-DD`、`to=YYYY-MM-DD` |
+
+本次扩展使用现有表，无新增迁移；环境仍须已应用 `0005_management.sql`。所有接口继续在服务端实时验证管理员身份，统计与详情响应不缓存。

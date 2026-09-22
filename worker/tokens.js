@@ -101,13 +101,17 @@ export async function handleTokens(request, env) {
       const status = url.searchParams.get('status') || 'all';
       if (!['all', 'pending', 'approved', 'rejected'].includes(status)) throw new InputError('invalid_input');
       const query = field(url.searchParams.get('q') || '', 0, 100);
-      const where = own ? 'r.user_id = ?' : "(? = 'all' OR r.status = ?) AND (? = '' OR instr(lower(r.project_name), lower(?)) > 0 OR r.user_id IN (SELECT id FROM users WHERE instr(lower(email), lower(?)) > 0 OR instr(lower(nickname), lower(?)) > 0 OR instr(public_id, lower(?)) > 0))";
-      const args = own ? [user.id] : [status, status, query, query, query, query, query];
+      const userId = own ? '' : (url.searchParams.get('userId') || '');
+      const sort = own ? 'newest' : (url.searchParams.get('sort') || 'newest');
+      if ((userId && !/^[a-z0-9]{8}$/.test(userId)) || !['newest', 'oldest'].includes(sort)) throw new InputError('invalid_input');
+      const direction = sort === 'oldest' ? 'ASC' : 'DESC';
+      const where = own ? 'r.user_id = ?' : "(? = '' OR r.user_id = (SELECT id FROM users WHERE public_id = ?)) AND (? = 'all' OR r.status = ?) AND (? = '' OR instr(lower(r.project_name), lower(?)) > 0 OR r.user_id IN (SELECT id FROM users WHERE instr(lower(email), lower(?)) > 0 OR instr(lower(nickname), lower(?)) > 0 OR instr(public_id, lower(?)) > 0))";
+      const args = own ? [user.id] : [userId, userId, status, status, query, query, query, query, query];
       const [count, rows] = await env.AUTH_DB.batch([
         env.AUTH_DB.prepare(`SELECT COUNT(*) AS total FROM token_requests r WHERE ${where}`).bind(...args),
         env.AUTH_DB.prepare(`SELECT ${columns}${own ? '' : ', u.public_id AS userId, u.email, u.nickname, u.status AS userStatus, reviewer.email AS reviewerEmail'}
           FROM token_requests r ${own ? '' : 'JOIN users u ON u.id = r.user_id LEFT JOIN users reviewer ON reviewer.id = r.reviewed_by'}
-          WHERE ${where} ORDER BY r.created_at DESC, r.id DESC LIMIT 20 OFFSET ?`).bind(...args, offset),
+          WHERE ${where} ORDER BY r.created_at ${direction}, r.id ${direction} LIMIT 20 OFFSET ?`).bind(...args, offset),
       ]);
       const eligibility = own ? await env.AUTH_DB.prepare("SELECT status FROM token_requests WHERE user_id = ? AND status IN ('pending', 'approved')").bind(user.id).first() : null;
       return json({ requests: rows.results, total: count.results[0].total, page, pageSize: 20, ...(own ? { canApply: !eligibility } : {}) });

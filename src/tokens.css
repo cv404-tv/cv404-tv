@@ -98,3 +98,44 @@
 @media (max-width: 1000px) { .token-toolbar { flex-wrap: wrap; } .token-toolbar form { min-width: 100%; max-width: none; } }
 @media (max-width: 800px) { .management-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .management-columns { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .management-stats { gap: 10px; } .management-stats > div { padding: 18px 14px; } .management-sessions li { grid-template-columns: 1fr; gap: 6px; } }
+
+/* Administration work queue, trend and contextual user details. */
+.admin-workload { display: flex; align-items: center; gap: 28px; margin: 28px 0 24px; }
+.admin-workload > div:first-child { flex: 1; }
+.admin-workload h2 { margin-bottom: 8px; }
+.admin-workload .token-eyebrow { margin-top: 0; }
+.admin-workload-count { display: grid; gap: 8px; font-size: 12px; color: var(--muted); }
+.admin-workload-count strong { font: 32px var(--mono); color: var(--accent); }
+.admin-workload-count small { max-width: 220px; line-height: 1.6; }
+.admin-trend { margin-bottom: 24px; }
+.admin-trend-legend { display: flex; flex-wrap: wrap; gap: 20px; font-size: 12px; color: var(--muted); }
+.admin-trend-legend span { display: inline-flex; align-items: center; gap: 8px; }
+.admin-trend-legend i { width: 9px; height: 9px; border-radius: 2px; }
+.admin-series-users { background: var(--accent); }
+.admin-series-applications { background: #b58a2e; }
+.admin-series-reviews { background: #538d78; }
+.admin-trend-chart { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 24px; margin: 24px 0; }
+.admin-trend-day { min-width: 0; text-align: center; font: 11px var(--mono); color: var(--muted); }
+.admin-trend-bars { height: 130px; display: flex; justify-content: center; align-items: flex-end; gap: 5px; border-bottom: 1px solid var(--stroke); margin-bottom: 12px; }
+.admin-trend-bars > div { width: 20px; max-width: 26%; border-radius: 3px 3px 0 0; }
+.admin-trend-data summary { cursor: pointer; padding: 12px 0; font-size: 13px; }
+.admin-trend-data summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.admin-toolbar { flex-wrap: wrap; justify-content: flex-start; gap: 12px; }
+.admin-toolbar label { gap: 8px; flex-shrink: 0; }
+.admin-toolbar input[type=date] { width: 155px; font-size: 13px; }
+.admin-toolbar form { min-width: 100%; max-width: none; }
+.admin-filter-chip { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; font-size: 13px; }
+.admin-user-detail { margin: 24px 0; border-color: var(--edge); }
+.admin-user-detail h2:focus { outline: none; }
+.admin-profile-line { display: flex; justify-content: space-between; align-items: center; gap: 16px; overflow-wrap: anywhere; }
+.admin-profile-line p { font-size: 13px; color: var(--muted); }
+.admin-recent-list { list-style: none; margin: 0; padding: 0; }
+.admin-recent-list li { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--stroke); font-size: 13px; overflow-wrap: anywhere; }
+.admin-recent-list small { flex-basis: 100%; color: var(--muted); line-height: 1.7; }
+.admin-recent-list p { margin: 0; width: 100%; }
+.token-page .admin-user-link { padding: 0; min-height: 32px; border: 0; background: transparent; text-align: left; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; overflow-wrap: anywhere; }
+@media (max-width: 800px) { .admin-workload { flex-wrap: wrap; gap: 20px; } .admin-workload > div:first-child { flex-basis: 100%; } .admin-workload > button { margin-left: auto; } }
+@media (max-width: 560px) { .admin-trend-chart { gap: 8px; } .admin-trend-bars { gap: 3px; } .admin-profile-line { align-items: flex-start; flex-direction: column; } .admin-user-detail > .token-section-heading { align-items: flex-start; flex-wrap: wrap; } .admin-workload > button { margin-left: 0; } }
+
+/* Keep audit/user columns readable; narrow screens scroll inside the table. */
+.token-table-wrap[aria-label] .token-table { min-width: 760px; }

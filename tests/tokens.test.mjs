@@ -255,3 +255,83 @@ test('audit and session pages are bounded and do not duplicate records', async (
   assert.equal(new Set([...a.entries, ...b.entries].map(e => e.id)).size, 22);
   assert.equal((await call('admin/audit?page=1.5', { user: 'admin' })).status, 400);
 });
+
+test('admin user details scope recent records, count live sessions and never disclose credentials', async () => {
+  for (const user of ['guest', 'alice']) assert.equal((await call('admin/users/alice000', { user })).status, user === 'guest' ? 401 : 403);
+  const { id } = await (await apply()).json();
+  await review(id);
+  await apply('bob');
+  await db.prepare('INSERT INTO sessions VALUES (?, ?, 1, 1)').bind('expired-detail-session', 'alice').run();
+  const response = await call('admin/users/alice000', { user: 'admin' });
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Cache-Control'), 'no-store');
+  const data = await response.json();
+  assert.equal(data.user.userId, 'alice000'); assert.equal(data.user.isAdmin, false);
+  assert.equal(data.applications, 1); assert.equal(data.approved, 1); assert.equal(data.granted, approval.grantedTokens);
+  assert.equal(data.sessions, 1); assert.equal(data.requests[0].id, id); assert.equal(data.activity[0].detail, id);
+  assert.equal(data.user.id, undefined);
+  assert.doesNotMatch(JSON.stringify(data), /sk-test|credential|token_hash|expired-detail-session|bob@example/);
+  assert.equal((await list('admin/users/admin000', 'admin')).user.isAdmin, true);
+  assert.equal((await call('admin/users/missing0', { user: 'admin' })).status, 404);
+  for (let i = 0; i < 7; i++) await db.prepare('INSERT INTO admin_audit VALUES (?, ?, ?, ?, ?, ?)').bind(`detail-${i}`, 'admin', 'alice', 'enable', 'Case', 100 + i).run();
+  assert.equal((await list('admin/users/alice000', 'admin')).activity.length, 5);
+  env.ADMIN_EMAILS = '';
+  assert.equal((await call('admin/users/alice000', { user: 'admin' })).status, 403);
+});
+
+test('overview zero-fills UTC days and reports aged and disabled pending applications', async () => {
+  const now = Math.floor(Date.now() / 1000);
+  const start = Math.floor(now / 86400) * 86400 - 6 * 86400;
+  const { id } = await (await apply()).json();
+  await db.prepare('UPDATE token_requests SET created_at = ? WHERE id = ?').bind(now - 49 * 3600, id).run();
+  await apply('bob');
+  await db.prepare("UPDATE users SET created_at = ? WHERE id = 'alice'").bind(start).run();
+  await db.prepare("UPDATE users SET created_at = ?, status = 'disabled' WHERE id = 'bob'").bind(start - 1).run();
+  const data = await list('admin/overview', 'admin');
+  assert.equal(data.overdue, 1); assert.equal(data.blockedPending, 1); assert.equal(data.oldestPendingAt, now - 49 * 3600);
+  assert.equal(data.trend.length, 7); assert.equal(data.newUsers, 1); assert.equal(data.trend[0].users, 1);
+  assert.equal(data.trend[0].day, new Date(start * 1000).toISOString().slice(0, 10));
+  assert.equal(data.trend.reduce((n, d) => n + d.applications, 0), 2);
+  assert.equal(data.trend.reduce((n, d) => n + d.reviews, 0), 0);
+  assert.deepEqual(data.trend[1], { day: new Date((start + 86400) * 1000).toISOString().slice(0, 10), users: 0, applications: 0, reviews: 0 });
+  await review(id);
+  const updated = await list('admin/overview', 'admin');
+  assert.equal(updated.overdue, 0); assert.equal(updated.trend[6].reviews, 1);
+});
+
+test('audit combines action, literal search, exact target and inclusive UTC date filters', async () => {
+  const day = Date.parse('2026-09-20T00:00:00Z') / 1000;
+  for (const [id, target, action, detail, timestamp] of [
+    ['before', 'alice', 'disable', 'Case 404', day - 1],
+    ['start', 'alice', 'disable', 'Case 404', day],
+    ['end', 'alice', 'disable', 'Case 404', day + 86399],
+    ['after', 'alice', 'disable', 'Case 404', day + 86400],
+    ['bob', 'bob', 'disable', 'Case 404', day],
+    ['enable', 'alice', 'enable', 'Case 404', day],
+    ['other', 'alice', 'disable', 'Other reason', day],
+  ]) await db.prepare('INSERT INTO admin_audit VALUES (?, ?, ?, ?, ?, ?)').bind(id, 'admin', target, action, detail, timestamp).run();
+  const path = 'admin/audit?from=2026-09-20&to=2026-09-20&action=disable&userId=alice000&q=cAsE';
+  const data = await list(path, 'admin');
+  assert.equal(data.total, 2); assert.deepEqual(data.entries.map(e => e.id), ['end', 'start']);
+  assert.equal((await list('admin/audit?q=ADMIN@EXAMPLE.COM', 'admin')).total, 7);
+  assert.equal((await list('admin/audit?q=bob00000', 'admin')).total, 1);
+  assert.equal((await list('admin/audit?q=%25', 'admin')).total, 0);
+  assert.equal((await list('admin/audit?userId=missing0', 'admin')).total, 0);
+  for (const query of ['from=2026-02-30', 'from=bad', 'from=2026-09-21&to=2026-09-20', 'action=delete', 'userId=alice', `q=${'a'.repeat(101)}`]) assert.equal((await call(`admin/audit?${query}`, { user: 'admin' })).status, 400, query);
+});
+
+test('application sorting is stable and exact user filters cannot match another project name', async () => {
+  const { id: alice } = await (await apply()).json();
+  const { id: bob } = await (await apply('bob', { ...input, projectName: 'alice000' })).json();
+  await db.prepare('UPDATE token_requests SET created_at = 10 WHERE id = ?').bind(alice).run();
+  await db.prepare('UPDATE token_requests SET created_at = 20 WHERE id = ?').bind(bob).run();
+  assert.deepEqual((await list('admin/token-requests?sort=oldest', 'admin')).requests.map(r => r.id), [alice, bob]);
+  assert.deepEqual((await list('admin/token-requests?sort=newest', 'admin')).requests.map(r => r.id), [bob, alice]);
+  assert.equal((await list('admin/token-requests?q=alice000', 'admin')).total, 2);
+  const scoped = await list('admin/token-requests?userId=alice000&sort=oldest', 'admin');
+  assert.equal(scoped.total, 1); assert.equal(scoped.requests[0].id, alice);
+  assert.equal((await list('admin/token-requests?userId=alice000&status=approved', 'admin')).total, 0);
+  for (const query of ['sort=random', 'sort=ASC%3BDROP', 'userId=bad']) assert.equal((await call(`admin/token-requests?${query}`, { user: 'admin' })).status, 400);
+  // Applicant routes must never allow an administrative user filter to escape ownership.
+  assert.equal((await list('token-requests?userId=bob00000&sort=oldest')).requests[0].id, alice);
+});

@@ -14,7 +14,7 @@ export async function handleManagement(request, env) {
   const sessions = url.pathname === '/api/account/sessions';
   const target = url.pathname.match(/^\/api\/admin\/users\/([a-z0-9]{8})$/);
   if (!overview && !audit && !account && !sessions && !target) return json({ error: 'not_found' }, 404);
-  const methods = target ? ['PATCH'] : sessions ? ['GET', 'DELETE'] : ['GET'];
+  const methods = target ? ['GET', 'PATCH'] : sessions ? ['GET', 'DELETE'] : ['GET'];
   if (!methods.includes(request.method)) return json({ error: 'method_not_allowed' }, 405, { Allow: methods.join(', ') });
   try {
     const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
@@ -67,21 +67,63 @@ export async function handleManagement(request, env) {
       ]);
       return json({ sessions: rows.results, total: count.results[0].total, page, pageSize: 20 });
     }
+    if (target) {
+      const profile = await db.prepare('SELECT id, public_id AS userId, email, nickname, status, created_at AS createdAt, email_verified_at AS verifiedAt FROM users WHERE public_id = ?').bind(target[1]).first();
+      if (!profile) return json({ error: 'not_found' }, 404);
+      const [stats, sessions, votes, requests, activity] = await db.batch([
+        db.prepare("SELECT COUNT(*) AS applications, COALESCE(SUM(status = 'pending'), 0) AS pending, COALESCE(SUM(status = 'approved'), 0) AS approved, COALESCE(SUM(status = 'rejected'), 0) AS rejected, COALESCE(SUM(granted_tokens), 0) AS granted FROM token_requests WHERE user_id = ?").bind(profile.id),
+        db.prepare('SELECT COUNT(*) AS sessions FROM sessions WHERE user_id = ? AND expires_at > ?').bind(profile.id, now),
+        db.prepare('SELECT COUNT(*) AS votes FROM tier_votes WHERE user_id = ?').bind(profile.id),
+        db.prepare('SELECT id, project_name AS projectName, status, created_at AS createdAt FROM token_requests WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT 5').bind(profile.id),
+        db.prepare('SELECT a.id, a.action, a.detail, a.created_at AS createdAt, u.email AS actorEmail FROM admin_audit a JOIN users u ON u.id = a.actor_id WHERE a.target_id = ? ORDER BY a.created_at DESC, a.id DESC LIMIT 5').bind(profile.id),
+      ]);
+      const { id, ...publicProfile } = profile;
+      return json({ user: { ...publicProfile, isAdmin: isAdmin(profile, env) }, ...stats.results[0], ...sessions.results[0], ...votes.results[0], requests: requests.results, activity: activity.results });
+    }
     if (overview) {
-      const [users, requests, sessions] = await db.batch([
-        db.prepare("SELECT COUNT(*) AS users, COALESCE(SUM(status = 'active'), 0) AS active, COALESCE(SUM(status = 'disabled'), 0) AS disabled, COALESCE(SUM(created_at >= ?), 0) AS newUsers FROM users").bind(now - 7 * 86400),
+      const start = Math.floor(now / 86400) * 86400 - 6 * 86400;
+      const [users, requests, sessions, backlog, registrations, submissions, reviews] = await db.batch([
+        db.prepare("SELECT COUNT(*) AS users, COALESCE(SUM(status = 'active'), 0) AS active, COALESCE(SUM(status = 'disabled'), 0) AS disabled, COALESCE(SUM(created_at >= ?), 0) AS newUsers FROM users").bind(start),
         db.prepare("SELECT COUNT(*) AS applications, COALESCE(SUM(status = 'pending'), 0) AS pending, COALESCE(SUM(status = 'approved'), 0) AS approved, COALESCE(SUM(status = 'rejected'), 0) AS rejected, COALESCE(SUM(granted_tokens), 0) AS granted FROM token_requests"),
         db.prepare("SELECT COUNT(DISTINCT s.user_id) AS online FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.expires_at > ? AND u.status = 'active'").bind(now),
+        db.prepare("SELECT COALESCE(SUM(r.created_at <= ?), 0) AS overdue, MIN(r.created_at) AS oldestPendingAt, COALESCE(SUM(u.status = 'disabled'), 0) AS blockedPending FROM token_requests r JOIN users u ON u.id = r.user_id WHERE r.status = 'pending'").bind(now - 48 * 3600),
+        db.prepare("SELECT date(created_at, 'unixepoch') AS day, COUNT(*) AS count FROM users WHERE created_at >= ? GROUP BY day").bind(start),
+        db.prepare("SELECT date(created_at, 'unixepoch') AS day, COUNT(*) AS count FROM token_requests WHERE created_at >= ? GROUP BY day").bind(start),
+        db.prepare("SELECT date(reviewed_at, 'unixepoch') AS day, COUNT(*) AS count FROM token_requests WHERE reviewed_at >= ? GROUP BY day").bind(start),
       ]);
-      return json({ ...users.results[0], ...requests.results[0], ...sessions.results[0] });
+      const counts = result => new Map(result.results.map(row => [row.day, row.count]));
+      const joined = counts(registrations), applied = counts(submissions), reviewed = counts(reviews);
+      const trend = Array.from({ length: 7 }, (_, index) => {
+        const day = new Date((start + index * 86400) * 1000).toISOString().slice(0, 10);
+        return { day, users: joined.get(day) || 0, applications: applied.get(day) || 0, reviews: reviewed.get(day) || 0 };
+      });
+      return json({ ...users.results[0], ...requests.results[0], ...sessions.results[0], ...backlog.results[0], trend, asOf: now });
     }
     const { page, offset } = pagination(url);
+    const query = field(url.searchParams.get('q') || '', 0, 100);
+    const action = url.searchParams.get('action') || 'all';
+    const userId = url.searchParams.get('userId') || '';
+    if (!['all', 'enable', 'disable', 'revoke_sessions', 'token_approved', 'token_rejected'].includes(action) || (userId && !/^[a-z0-9]{8}$/.test(userId))) throw new InputError('invalid_input');
+    function dateBoundary(name) {
+      const value = url.searchParams.get(name);
+      if (!value) return null;
+      const timestamp = Date.parse(`${value}T00:00:00Z`);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(timestamp) || new Date(timestamp).toISOString().slice(0, 10) !== value) throw new InputError('invalid_input');
+      return timestamp / 1000;
+    }
+    const from = dateBoundary('from'), to = dateBoundary('to');
+    if (from !== null && to !== null && from > to) throw new InputError('invalid_input');
+    const filter = `(? = 'all' OR a.action = ?) AND (? = '' OR target.public_id = ?)
+      AND (? IS NULL OR a.created_at >= ?) AND (? IS NULL OR a.created_at < ?)
+      AND (? = '' OR instr(lower(actor.email), lower(?)) > 0 OR instr(lower(target.email), lower(?)) > 0
+        OR instr(target.public_id, lower(?)) > 0 OR instr(lower(a.detail), lower(?)) > 0)`;
+    const args = [action, action, userId, userId, from, from, to, to === null ? null : to + 86400, query, query, query, query, query];
+    const source = 'FROM admin_audit a JOIN users actor ON actor.id = a.actor_id JOIN users target ON target.id = a.target_id';
     const [count, rows] = await db.batch([
-      db.prepare('SELECT COUNT(*) AS total FROM admin_audit'),
+      db.prepare(`SELECT COUNT(*) AS total ${source} WHERE ${filter}`).bind(...args),
       db.prepare(`SELECT a.id, a.action, a.detail, a.created_at AS createdAt, actor.email AS actorEmail,
-        target.email AS targetEmail, target.public_id AS userId FROM admin_audit a
-        JOIN users actor ON actor.id = a.actor_id JOIN users target ON target.id = a.target_id
-        ORDER BY a.created_at DESC, a.id DESC LIMIT 20 OFFSET ?`).bind(offset),
+        target.email AS targetEmail, target.public_id AS userId ${source} WHERE ${filter}
+        ORDER BY a.created_at DESC, a.id DESC LIMIT 20 OFFSET ?`).bind(...args, offset),
     ]);
     return json({ entries: rows.results, total: count.results[0].total, page, pageSize: 20 });
   } catch (error) {
