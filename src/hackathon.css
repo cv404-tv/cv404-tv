@@ -14,6 +14,7 @@
 .jev-page em { color: var(--j-red); font-style: normal; }
 .jev-hero-copy > p { max-width: 440px; font-size: 16px; line-height: 1.9; color: var(--j-muted); }
 .jev-actions { display: flex; align-items: center; gap: 28px; margin-top: 32px; }
+.jev-actions { flex-wrap: wrap; }
 .jev-button { display: inline-flex; align-items: center; justify-content: space-between; gap: 36px; padding: 17px 22px; border: 1px solid #b9312b; border-radius: 3px; background: #b9312b; color: #fff8ee; font-size: 14px; font-weight: 600; line-height: 1.3; }
 .jev-button:hover { background: #9f2723; }
 .jev-button:disabled, .jev-page fieldset:disabled { opacity: .65; cursor: wait; }

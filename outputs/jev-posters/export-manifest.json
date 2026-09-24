@@ -1,0 +1,33 @@
+{
+  "count": 4,
+  "files": [
+    {
+      "name": "poster-01.png",
+      "width": 2160,
+      "height": 2880,
+      "sha256": "a7cfb2614231bb968479168b78fa4341f3ee66512b3d6b387d4f8d7f0666e9c8"
+    },
+    {
+      "name": "poster-02.png",
+      "width": 2160,
+      "height": 2880,
+      "sha256": "6d1642516c84ca2967ec1ce523bf1ace59c9a4a7fbdcf5367eedd34121f6cad2"
+    },
+    {
+      "name": "poster-03.png",
+      "width": 2160,
+      "height": 2880,
+      "sha256": "90cdc9974a9f6ba0013d58e9557a4556032b89bfdb92790fa178a4d3dd284853"
+    },
+    {
+      "name": "poster-04.png",
+      "width": 2160,
+      "height": 2880,
+      "sha256": "991bb02ebd14398098585517d12bf6ef0258664b58a172e50da4ebf0615afee1"
+    }
+  ],
+  "zip": {
+    "name": "jev-registration-posters.zip",
+    "sha256": "3946be7eb1f3d5e6605efaeaca06aa615a8b2b039b2f6f5907a06c8d14e511fd"
+  }
+}

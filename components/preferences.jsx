@@ -65,6 +65,8 @@ export function PreferencesProvider({ children }) {
     document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
     document.title = pathname === "/" || pathname.startsWith("/signal")
       ? locale === "zh" ? "404 信号搜寻 · 云谷404" : "404 Signal Search · Cloud Valley 404"
+      : pathname.startsWith("/events/jev/slides")
+        ? (locale === "zh" ? "Jev 黑客松 · 活动 PPT · 云谷404" : "Jev Hackathon · Event Slides · Cloud Valley 404")
       : pathname.startsWith("/events/jev")
         ? (locale === "zh" ? "Jev 黑客松 · 第二期 · 云谷404" : "Jev Hackathon · Edition 02 · Cloud Valley 404")
       : pathname.startsWith("/events")
