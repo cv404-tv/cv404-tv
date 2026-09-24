@@ -1,16 +1,16 @@
-import Television from "../../components/television";
+import EventsList from "../../components/events-list";
 
 export const metadata = {
-  title: "黑客松活动 · 云谷404",
-  description: "云谷404迷你黑客松：一个下午，从想法到现场演示。回顾第一期活动，查看创作指南，一起把好想法做出来。",
+  title: "活动 · 云谷404",
+  description: "查看云谷404正在筹备与往期的线下活动：第二期 Jev 黑客松报名、第一期迷你黑客松回顾。",
   alternates: { canonical: "/events" },
   openGraph: {
-    title: "黑客松活动 · 云谷404",
-    description: "一个下午，让想法开始运行。云谷404迷你黑客松活动与创作指南。",
+    title: "活动 · 云谷404",
+    description: "在云谷404，和动手的人一起把想法做出来。",
     url: "https://cv404.tv/events",
   },
 };
 
 export default function EventsPage() {
-  return <Television />;
+  return <EventsList />;
 }

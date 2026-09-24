@@ -187,14 +187,6 @@ export default function SignalGame() {
     <a className="skip-link" href="#signal-game">{t.title}</a>
     <Backdrop /><Header game />
     <main className="signal-page">
-      <Link className="signal-event-guide" href="/events/jev">
-        <span className="signal-event-issue" aria-hidden="true">02</span>
-        <span className="signal-event-copy">
-          <strong>{locale === "zh" ? "第二期 Jev 黑客松" : "Jev Hackathon · Edition 02"}</strong>
-          <span>{locale === "zh" ? "让 AI 做出下一步决定 · 报名意向征集中" : "Give AI a next move · Expressions of interest open"}</span>
-        </span>
-        <span className="signal-event-cta">{locale === "zh" ? "了解并报名" : "Explore & apply"}<span aria-hidden="true">↗</span></span>
-      </Link>
       <div className="signal-intro">
         <div><p className="signal-kicker"><span />{t.eyebrow}</p><h1>{t.title}<span>SIGNAL SEARCH</span></h1><p className="signal-lede">{t.lead}</p></div>
         <div className="signal-intro-note"><p>{t.description}</p><Link href="/events">{t.back} ↗</Link></div>

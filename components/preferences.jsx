@@ -73,7 +73,7 @@ export function PreferencesProvider({ children }) {
     } else if (pathname.startsWith("/events/xhs-xgj")) {
       pageTitle = copy[locale].eventDetailTitle;
     } else if (pathname.startsWith("/events")) {
-      pageTitle = locale === "zh" ? "黑客松活动 · 云谷404" : "Hackathon Events · Cloud Valley 404";
+      pageTitle = locale === "zh" ? "活动 · 云谷404" : "Events · Cloud Valley 404";
     } else if (pathname.startsWith("/tokens")) {
       pageTitle = locale === "zh" ? "免费 Token 申请 · 云谷404" : "Free Tokens · Cloud Valley 404";
     } else if (pathname.startsWith("/account")) {
