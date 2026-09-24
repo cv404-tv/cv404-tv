@@ -45,7 +45,7 @@ Worker 名称 `cv404-tv`，自定义域名 `cv404.tv`，资产目录 `out/`。�
 
 生产数据库 `cv404-accounts` 已创建并填入配置；生产还需 `AUTH_SECRET` secret 和 Cloudflare Email Sending 域名开通。具体步骤和接口约定见 [账户部署说明](docs/email-auth.md)。
 
-路由：`/` 是游戏首页，`/events` 是黑客松活动电视页，`/signal` 保留为游戏兼容入口（canonical 指向 `/`），`/guide` 是创作指南，`/tier` 是「锐评小工具」（从夯到拉排名玩法）；`/tier?share=<UUID>` 展示只读分享版本。旧的 `/tier-list`（包括分享参数）永久重定向到 `/tier`；`/guide.html` 保留为静态文件入口，便于旧链接继续访问；不存在的页面返回 404。Next.js 的 `_next/` 资源及路由载荷一同发布，支持 App Router 页面跳转。
+路由：`/` 是游戏首页，`/events` 是黑客松活动电视页，`/events/xhs-xgj` 是第一期迷你黑客松活动介绍，`/events/xhs-xgj/slides` 是该活动的网页演示（附原始 PPTX 下载），`/signal` 保留为游戏兼容入口（canonical 指向 `/`），`/guide` 是创作指南，`/tier` 是「锐评小工具」（从夯到拉排名玩法）；`/tier?share=<UUID>` 展示只读分享版本。旧的 `/tier-list`（包括分享参数）永久重定向到 `/tier`；`/guide.html` 保留为静态文件入口，便于旧链接继续访问；不存在的页面返回 404。Next.js 的 `_next/` 资源及路由载荷一同发布，支持 App Router 页面跳转。
 
 ## 个人中心、免费 Token 与管理后台
 

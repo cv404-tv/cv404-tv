@@ -63,25 +63,31 @@ export function PreferencesProvider({ children }) {
   }, [theme, ready]);
   useEffect(() => {
     document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
-    document.title = pathname === "/" || pathname.startsWith("/signal")
-      ? locale === "zh" ? "404 信号搜寻 · 云谷404" : "404 Signal Search · Cloud Valley 404"
-      : pathname.startsWith("/events/jev")
-        ? (locale === "zh" ? "Jev 黑客松 · 第二期 · 云谷404" : "Jev Hackathon · Edition 02 · Cloud Valley 404")
-      : pathname.startsWith("/events")
-        ? locale === "zh" ? "黑客松活动 · 云谷404" : "Hackathon Events · Cloud Valley 404"
-      : pathname.startsWith("/tokens")
-        ? locale === "zh" ? "免费 Token 申请 · 云谷404" : "Free Tokens · Cloud Valley 404"
-      : pathname.startsWith("/account")
-        ? (locale === "zh" ? "个人中心 · 云谷404" : "Your account · Cloud Valley 404")
-      : pathname.startsWith("/admin")
-        ? locale === "zh" ? "管理后台 · 云谷404" : "Admin · Cloud Valley 404"
-      : pathname.startsWith("/tier")
-      ? locale === "zh" ? "锐评小工具 · 云谷404" : "Hot Take Tool · Cloud Valley 404"
-      : pathname.startsWith("/privacy")
-        ? "隐私政策 · Privacy Policy"
-      : pathname.startsWith("/guide")
-        ? copy[locale].guideTitle
-        : copy[locale].title;
+    let pageTitle = copy[locale].title;
+    if (pathname === "/" || pathname.startsWith("/signal")) {
+      pageTitle = locale === "zh" ? "404 信号搜寻 · 云谷404" : "404 Signal Search · Cloud Valley 404";
+    } else if (pathname.startsWith("/events/jev")) {
+      pageTitle = locale === "zh" ? "Jev 黑客松 · 第二期 · 云谷404" : "Jev Hackathon · Edition 02 · Cloud Valley 404";
+    } else if (pathname.startsWith("/events/xhs-xgj/slides")) {
+      pageTitle = copy[locale].eventSlidesTitle;
+    } else if (pathname.startsWith("/events/xhs-xgj")) {
+      pageTitle = copy[locale].eventDetailTitle;
+    } else if (pathname.startsWith("/events")) {
+      pageTitle = locale === "zh" ? "黑客松活动 · 云谷404" : "Hackathon Events · Cloud Valley 404";
+    } else if (pathname.startsWith("/tokens")) {
+      pageTitle = locale === "zh" ? "免费 Token 申请 · 云谷404" : "Free Tokens · Cloud Valley 404";
+    } else if (pathname.startsWith("/account")) {
+      pageTitle = locale === "zh" ? "个人中心 · 云谷404" : "Your account · Cloud Valley 404";
+    } else if (pathname.startsWith("/admin")) {
+      pageTitle = locale === "zh" ? "管理后台 · 云谷404" : "Admin · Cloud Valley 404";
+    } else if (pathname.startsWith("/tier")) {
+      pageTitle = locale === "zh" ? "锐评小工具 · 云谷404" : "Hot Take Tool · Cloud Valley 404";
+    } else if (pathname.startsWith("/privacy")) {
+      pageTitle = "隐私政策 · Privacy Policy";
+    } else if (pathname.startsWith("/guide")) {
+      pageTitle = copy[locale].guideTitle;
+    }
+    document.title = pageTitle;
   }, [locale, pathname]);
   const setLocale = (value) => {
     if (!["system", "zh", "en"].includes(value)) return;

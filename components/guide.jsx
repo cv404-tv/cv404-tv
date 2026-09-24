@@ -62,6 +62,16 @@ export default function Guide() {
             {guide.download} ↓
           </a>
           <p>
+            <Link className="text-link" href="/events/xhs-xgj">
+              {guide.eventLink} ↗
+            </Link>
+          </p>
+          <p>
+            <Link className="text-link" href="/events/xhs-xgj/slides">
+              {guide.slidesLink} ↗
+            </Link>
+          </p>
+          <p>
             <Link className="text-link" href="/">
               {t.backHome} ↗
             </Link>

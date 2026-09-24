@@ -410,7 +410,7 @@ export default function Television() {
                             <br />
                             {t.venue}
                           </p>
-                          <Link className="screen-cta" href="/guide">
+                          <Link className="screen-cta" href="/events/xhs-xgj">
                             {t.eventCta}
                             <span>↗</span>
                           </Link>
