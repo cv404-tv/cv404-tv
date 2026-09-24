@@ -45,7 +45,7 @@ Worker 名称 `cv404-tv`，自定义域名 `cv404.tv`，资产目录 `out/`。�
 
 生产数据库 `cv404-accounts` 已创建并填入配置；生产还需 `AUTH_SECRET` secret 和 Cloudflare Email Sending 域名开通。具体步骤和接口约定见 [账户部署说明](docs/email-auth.md)。
 
-路由：`/` 是游戏首页，`/events` 展示正在筹备与往期活动，`/events/jev` 是第二期 Jev 黑客松介绍及同页报名，`/events/xhs-xgj` 是第一期迷你黑客松活动介绍，`/events/xhs-xgj/slides` 是该活动的网页演示（附原始 PPTX 下载），`/signal` 保留为游戏兼容入口（canonical 指向 `/`），`/guide` 是创作指南，`/tier` 是「锐评小工具」（从夯到拉排名玩法）；`/tier?share=<UUID>` 展示只读分享版本。旧的 `/tier-list`（包括分享参数）永久重定向到 `/tier`；`/guide.html` 保留为静态文件入口，便于旧链接继续访问；不存在的页面返回 404。Next.js 的 `_next/` 资源及路由载荷一同发布，支持 App Router 页面跳转。
+路由：`/` 是游戏首页，`/events` 展示正在筹备与往期活动，`/events/jev` 是第二期 Jev 黑客松介绍及同页报名，`/events/jev/slides` 是第二期演示稿，`/events/xhs-xgj` 是第一期迷你黑客松活动介绍，`/events/xhs-xgj/slides` 是第一期的网页演示（附原始 PPTX 下载），`/signal` 保留为游戏兼容入口（canonical 指向 `/`），`/guide` 是创作指南，`/tier` 是「锐评小工具」（从夯到拉排名玩法）；`/tier?share=<UUID>` 展示只读分享版本。旧的 `/tier-list`（包括分享参数）永久重定向到 `/tier`；`/guide.html` 保留为静态文件入口，便于旧链接继续访问；不存在的页面返回 404。Next.js 的 `_next/` 资源及路由载荷一同发布，支持 App Router 页面跳转。
 
 活动目录由 `lib/events.js` 的双语记录驱动，按 `upcoming` 与 `past` 分组。新增活动时添加记录和对应的 `/events/<slug>` 详情页；报名入口放在该活动详情页，目录只负责浏览与进入。
 
@@ -120,6 +120,6 @@ Worker 名称 `cv404-tv`，自定义域名 `cv404.tv`，资产目录 `out/`。�
 
 ## 第二期 Jev 黑客松
 
-`/events/jev` 为第二期活动专题，提供 Jev 模型说明、预设决策演示、项目方向、拟定流程和邮箱登录后的报名意向提交。日期、地点、人数及费用未确定，页面明确显示待公布。每个账户每期仅保存一份申请，可返回本页查看回执与审核反馈；`/admin` 新增“黑客松报名”列表与审核功能。
+`/events/jev` 为第二期活动专题，提供 Jev 模型说明、预设决策演示、项目方向、拟定一日流程与评审建议，以及邮箱登录后的报名意向提交。活动时间为 2026-09-27 10:00–20:00，地点为云谷中心 B2-3F 活动区；人数、费用等仍待确认。`/events/jev/slides` 展示第二期活动演示稿。每个账户每期仅保存一份申请，可返回本页查看回执与审核反馈；`/admin` 提供“黑客松报名”列表与审核功能。
 
-需应用 `0006_hackathon.sql` 后部署。模型调研来源、API、资料使用边界和部署步骤见 [Jev 黑客松说明](docs/jev-hackathon.md)。页面示例不调用真实 Jev；报名审核不自动发送邮件。
+需应用 `0006_hackathon.sql` 后部署。模型调研来源、API、资料使用边界和部署步骤见 [Jev 黑客松说明](docs/jev-hackathon.md)；流程与评审的讨论稿见 [第二期活动提案](docs/jev-hackathon-plan.md)。页面示例不调用真实 Jev；报名审核不自动发送邮件。

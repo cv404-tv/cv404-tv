@@ -1,0 +1,3 @@
+Tool: built-in image_gen
+Prompt: Convert the supplied geometric-mark.png into two solid carved black basalt stone modules. Preserve the isometric logo silhouette, proportions, upper-left/lower-right arrangement, and a small separation. Fill enclosed faces with matte charcoal-black stone, fine grains, subtle pores, slightly beveled carved edges and directional lighting. No text, watermark, pedestal or extra objects. Request transparent background.
+Validation: Stone texture generated successfully. The tool baked a checkerboard into the RGB image, and a targeted background-extraction retry did not produce alpha. This deliverable does not have a transparent background. Original PNG and SVG are preserved.
