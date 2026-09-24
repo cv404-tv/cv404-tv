@@ -14,7 +14,6 @@ const partnerMarks = [
   '/assets/jev-partner-ai-workshop.png',
   '/assets/jev-partner-hackers-and-painters.png',
   '/assets/jev-partner-your-space.png',
-  '/assets/jev-partner-modelscope.ico',
 ];
 
 function SlideBody({ slide, t, locale }) {
@@ -28,7 +27,7 @@ function SlideBody({ slide, t, locale }) {
       return <div className="jev-slide-partners-layout">
         <h2>{slide.title}</h2>
         <div className="jev-partner-group jev-partner-organizer"><span className="jev-partner-role">{slide.organizerLabel}</span><div className="jev-partner-organizer-mark">{locale === 'zh' ? <img src="/assets/jev-partner-cloud404.png" alt={slide.organizer} /> : <strong>{slide.organizer}</strong>}</div></div>
-        <div className="jev-partner-group jev-partner-coorganizers"><span className="jev-partner-role">{slide.coorganizerLabel}</span><div className="jev-partner-grid">{slide.coorganizers.map((name, index) => <div className={`jev-partner-mark jev-partner-mark-${index}`} key={name}>{index === 3 ? <><img src={partnerMarks[index]} alt="" /><strong>{locale === 'zh' ? <>ModelScope<small>魔搭社区</small></> : name}</strong></> : locale === 'zh' ? <img src={partnerMarks[index]} alt={name} /> : <strong>{name}</strong>}</div>)}</div></div>
+        <div className="jev-partner-group jev-partner-coorganizers"><span className="jev-partner-role">{slide.coorganizerLabel}</span><div className="jev-partner-grid">{slide.coorganizers.map((name, index) => <div className={`jev-partner-mark jev-partner-mark-${index}`} key={name}><img src={partnerMarks[index]} alt={name} /></div>)}</div></div>
       </div>;
     case 'mission':
       return <><h2><Multiline value={slide.title} /></h2><p className="jev-slide-lead">{slide.lead}</p><div className="jev-slide-process">{slide.stages.map(([name, body], index) => <div key={name}><small>0{index + 1} / {name}</small><strong>{body}</strong></div>)}</div></>;

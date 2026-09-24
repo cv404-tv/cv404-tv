@@ -55,16 +55,11 @@
 .jev-partner-organizer-mark, .jev-partner-mark { background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .jev-partner-organizer-mark { min-height: 11.6cqw; padding: 1.2cqw 2.4cqw; }
 .jev-partner-organizer-mark img { display: block; width: min(41cqw, 100%); max-height: 9.8cqw; object-fit: contain; }
-.jev-partner-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8cqw; }
+.jev-partner-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8cqw; }
 .jev-partner-mark { min-height: 10.5cqw; padding: 1cqw; }
 .jev-partner-mark > img { display: block; max-width: 100%; max-height: 7.5cqw; object-fit: contain; }
-.jev-partner-mark-3 { gap: .6cqw; }
-.jev-partner-mark-3 > img { width: 3.5cqw; height: 3.5cqw; }
-.jev-partner-mark-3 strong { display: flex; flex-direction: column; color: #1b2031; font-size: 1.3cqw; line-height: 1.1; white-space: nowrap; }
-.jev-partner-mark-3 small { font-size: .95cqw; letter-spacing: .12em; margin-top: .3cqw; }
 .jev-partner-organizer-mark > strong, .jev-partner-mark > strong { color: #1b2031; }
 .jev-partner-organizer-mark > strong { font-size: 3.2cqw; letter-spacing: -.04em; }
-.jev-partner-mark:not(.jev-partner-mark-3) > strong { font-size: 1.7cqw; text-align: center; line-height: 1.1; }
 .jev-slide-process, .jev-slide-example-flow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3.2cqw; margin-top: 6%; }
 .jev-slide-process > div, .jev-slide-example-flow > div { min-height: 11cqw; padding-top: 2cqw; border-top: 2px solid var(--deck-accent); display: flex; flex-direction: column; gap: 1.8cqw; }
 .jev-slide-process small, .jev-slide-example-flow small { color: var(--deck-accent); font: 1.1cqw var(--mono); letter-spacing: .07em; }
@@ -138,14 +133,9 @@
   .jev-partner-organizer-mark { min-height: 104px; padding: 10px 24px; }
   .jev-partner-organizer-mark img { width: min(260px, 100%); max-height: 90px; }
   .jev-partner-organizer-mark > strong { font-size: 27px; }
-  .jev-partner-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .jev-partner-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
   .jev-partner-mark { min-height: 92px; padding: 10px; }
   .jev-partner-mark > img { max-height: 69px; }
-  .jev-partner-mark-3 { gap: 5px; }
-  .jev-partner-mark-3 > img { width: 27px; height: 27px; }
-  .jev-partner-mark-3 strong { font-size: 12px; }
-  .jev-partner-mark-3 small { font-size: 10px; margin-top: 3px; }
-  .jev-partner-mark:not(.jev-partner-mark-3) > strong { font-size: 16px; }
   .jev-slide-process, .jev-slide-primitives, .jev-slide-example-flow, .jev-slide-tracks-list, .jev-slide-deliver-list, .jev-slide-timeline-grid, .jev-slide-scores { grid-template-columns: 1fr; gap: 12px; margin-top: 22px; }
   .jev-slide-process > div, .jev-slide-example-flow > div { min-height: 0; padding: 10px 0 0; gap: 5px; }
   .jev-slide-process small, .jev-slide-example-flow small, .jev-slide-deliver-list span { font-size: 11px; }

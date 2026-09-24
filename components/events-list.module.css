@@ -254,6 +254,10 @@
   object-fit: contain;
 }
 
+.featured .posterArt img {
+  max-height: 390px;
+}
+
 .empty {
   margin: 0;
   padding: 40px;
