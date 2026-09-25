@@ -42,6 +42,17 @@ function SlideBody({ slide, t, locale }) {
           </aside>
         </div>
       </div>;
+    case 'origin':
+      return <div className="jev-origin-layout">
+        <div className="jev-origin-copy">
+          <h2>{slide.title}</h2>
+          <p className="jev-origin-context">{slide.context}</p>
+          <p className="jev-origin-observation">{slide.observation}</p>
+          <p className="jev-origin-idea">{slide.idea}</p>
+          <a className="jev-origin-source" href={slide.sourceUrl} target="_blank" rel="noopener noreferrer">{slide.source} ↗</a>
+        </div>
+        <div className="jev-origin-mark" aria-hidden="true"><strong>JEV</strong><span>{slide.namesake}</span></div>
+      </div>;
     case 'mission':
       return <><h2><Multiline value={slide.title} /></h2><p className="jev-slide-lead">{slide.lead}</p><div className="jev-slide-process">{slide.stages.map(([name, body], index) => <div key={name}><small>0{index + 1} / {name}</small><strong>{body}</strong></div>)}</div></>;
     case 'model':
