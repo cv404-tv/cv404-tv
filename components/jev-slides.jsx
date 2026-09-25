@@ -11,10 +11,10 @@ function Multiline({ value }) {
 }
 
 const partnerMarks = [
-  '/assets/jev-partner-ai-workshop.png',
   '/assets/jev-partner-hackers-and-painters.png',
   '/assets/jev-partner-your-space.png',
 ];
+const hostXiaohongshuUrl = 'https://www.xiaohongshu.com/user/profile/6018053f000000000101d1d4';
 
 function SlideBody({ slide, t, locale }) {
   switch (slide.kind) {
@@ -29,18 +29,36 @@ function SlideBody({ slide, t, locale }) {
           </div>
         </aside>
       </div>;
+    case 'host':
+      return <div className="jev-host-layout">
+        <div className="jev-host-copy">
+          <div className="jev-host-intro">
+            <img className="jev-host-avatar" src="/assets/jev-host-avatar.png" alt={slide.avatarAlt} />
+            <div className="jev-host-intro-copy"><p className="jev-host-role">{slide.role}</p><h2>{slide.title}</h2></div>
+          </div>
+          <div className="jev-host-experience">{slide.experience.map(([years, label]) => <div key={label}><strong>{years}</strong><span>{label}</span></div>)}</div>
+          <div className="jev-host-achievements">{slide.achievements.map(([count, label]) => <div key={label}><strong>{count}</strong><span>{label}</span></div>)}</div>
+        </div>
+        <a className="jev-host-follow" href={hostXiaohongshuUrl} target="_blank" rel="noopener noreferrer" aria-label={slide.followLabel}>
+          <span className="jev-host-qr"><img src="/assets/jev-host-xiaohongshu-qr.png" alt={slide.qrAlt} /></span>
+          <strong>{slide.followTitle}</strong>
+          <span>{slide.followHint}</span>
+        </a>
+      </div>;
     case 'partners':
       return <div className="jev-slide-partners-layout">
         <h2>{slide.title}</h2>
-        <div className="jev-partners-main">
-          <div className="jev-partners-logo-stack">
-            <div className="jev-partner-group jev-partner-organizer"><span className="jev-partner-role">{slide.organizerLabel}</span><div className="jev-partner-organizer-mark">{locale === 'zh' ? <img src="/assets/jev-partner-cloud404.png" alt={slide.organizer} /> : <strong>{slide.organizer}</strong>}</div></div>
-            <div className="jev-partner-group jev-partner-coorganizers"><span className="jev-partner-role">{slide.coorganizerLabel}</span><div className="jev-partner-grid">{slide.coorganizers.map((name, index) => <div className={`jev-partner-mark jev-partner-mark-${index}`} key={name}><img src={partnerMarks[index]} alt={name} /></div>)}</div></div>
-          </div>
-          <aside className="jev-partners-community-qr" aria-label={locale === 'zh' ? '魔搭社区二维码' : 'ModelScope community QR code'}>
-            <img src="/assets/modelscope-community-qr.png" alt={locale === 'zh' ? '魔搭社区二维码' : 'ModelScope community QR code'} />
+        <div className="jev-partner-group jev-partner-organizer"><span className="jev-partner-role">{slide.organizerLabel}</span><div className="jev-partner-organizer-grid">
+          <div className="jev-partner-organizer-mark"><img src="/assets/jev-partner-cloud404.png" alt={slide.organizers[0]} /></div>
+          <div className="jev-partner-organizer-mark"><img src="/assets/jev-partner-ai-workshop.png" alt={slide.organizers[1]} /></div>
+        </div></div>
+        <div className="jev-partner-group jev-partner-coorganizers"><span className="jev-partner-role">{slide.coorganizerLabel}</span><div className="jev-partner-grid">
+          {slide.coorganizers.map((name, index) => <div className={`jev-partner-mark jev-partner-mark-${index}`} key={name}><img src={partnerMarks[index]} alt={name} /></div>)}
+          <aside className="jev-partner-community" aria-label={locale === 'zh' ? '魔搭社区及二维码' : 'ModelScope community and QR code'}>
+            <div className="jev-partner-community-mark"><img src="/assets/jev-partner-modelscope.ico" alt="" /><strong>{locale === 'zh' ? '魔搭社区' : 'ModelScope'}</strong></div>
+            <div className="jev-partners-community-qr"><img src="/assets/modelscope-community-qr.png" alt={locale === 'zh' ? '魔搭社区二维码' : 'ModelScope community QR code'} /></div>
           </aside>
-        </div>
+        </div></div>
       </div>;
     case 'origin':
       return <div className="jev-origin-layout">
@@ -140,7 +158,6 @@ export default function JevSlides() {
         {slide.kind !== 'cover' && <div className="jev-slide-heading"><span>{slide.eyebrow}</span><span>JEV / 002</span></div>}
         <div className="jev-slide-content"><SlideBody slide={slide} t={t} locale={locale} /></div>
         {slide.foot && <p className="jev-slide-foot">{slide.foot}</p>}
-        {slide.kind === 'cover' && <span className="jev-slide-poster-note">{t.posterDetails}</span>}
       </section>)}
     </main>
     <nav className="jev-deck-controls" aria-label={locale === 'zh' ? '幻灯片导航' : 'Slide navigation'}><span className="jev-deck-hint">{t.navigationHint}</span><div className="jev-deck-progress" aria-hidden="true"><span style={{ width: `${(index + 1) / t.slides.length * 100}%` }} /></div><span className="jev-deck-counter" aria-live="polite">{String(index + 1).padStart(2, '0')} / {String(t.slides.length).padStart(2, '0')}</span><button type="button" onClick={() => goTo(index - 1)} disabled={index === 0} aria-label={t.previous}>←</button><button type="button" onClick={() => goTo(index + 1)} disabled={index === t.slides.length - 1} aria-label={t.next}>→</button></nav>
