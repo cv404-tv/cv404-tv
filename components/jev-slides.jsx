@@ -22,12 +22,25 @@ function SlideBody({ slide, t, locale }) {
       return <div className={`jev-slide-cover-layout ${locale === 'en' ? 'is-en' : ''}`}>
         <div className="jev-slide-cover-copy"><div className="jev-slide-cover-brand" aria-label={locale === 'zh' ? '云谷404' : 'Cloud Valley 404'}><BrandMark /><strong>{locale === 'zh' ? '云谷' : 'CLOUD VALLEY'}<span>404</span></strong></div><h1><Multiline value={slide.title} /></h1><p className="jev-slide-cover-tagline">{slide.lead}</p><div className="jev-slide-cover-details"><strong>{slide.detail}</strong><span>{slide.secondary}</span></div></div>
         <div className="jev-slide-cover-art" aria-hidden="true" />
+        <aside className="jev-slide-cover-join" aria-label={locale === 'zh' ? '扫码加入活动群' : 'Scan to join the event group'}>
+          <span>{locale === 'zh' ? '扫码加入活动群' : 'SCAN TO JOIN THE GROUP'}</span>
+          <div className="jev-slide-cover-qr">
+            <img src="/assets/jev-hackathon-group-qr.png" alt={locale === 'zh' ? '第二期活动微信群二维码' : 'Second edition WeChat group QR code'} />
+          </div>
+        </aside>
       </div>;
     case 'partners':
       return <div className="jev-slide-partners-layout">
         <h2>{slide.title}</h2>
-        <div className="jev-partner-group jev-partner-organizer"><span className="jev-partner-role">{slide.organizerLabel}</span><div className="jev-partner-organizer-mark">{locale === 'zh' ? <img src="/assets/jev-partner-cloud404.png" alt={slide.organizer} /> : <strong>{slide.organizer}</strong>}</div></div>
-        <div className="jev-partner-group jev-partner-coorganizers"><span className="jev-partner-role">{slide.coorganizerLabel}</span><div className="jev-partner-grid">{slide.coorganizers.map((name, index) => <div className={`jev-partner-mark jev-partner-mark-${index}`} key={name}><img src={partnerMarks[index]} alt={name} /></div>)}</div></div>
+        <div className="jev-partners-main">
+          <div className="jev-partners-logo-stack">
+            <div className="jev-partner-group jev-partner-organizer"><span className="jev-partner-role">{slide.organizerLabel}</span><div className="jev-partner-organizer-mark">{locale === 'zh' ? <img src="/assets/jev-partner-cloud404.png" alt={slide.organizer} /> : <strong>{slide.organizer}</strong>}</div></div>
+            <div className="jev-partner-group jev-partner-coorganizers"><span className="jev-partner-role">{slide.coorganizerLabel}</span><div className="jev-partner-grid">{slide.coorganizers.map((name, index) => <div className={`jev-partner-mark jev-partner-mark-${index}`} key={name}><img src={partnerMarks[index]} alt={name} /></div>)}</div></div>
+          </div>
+          <aside className="jev-partners-community-qr" aria-label={locale === 'zh' ? '魔搭社区二维码' : 'ModelScope community QR code'}>
+            <img src="/assets/modelscope-community-qr.png" alt={locale === 'zh' ? '魔搭社区二维码' : 'ModelScope community QR code'} />
+          </aside>
+        </div>
       </div>;
     case 'mission':
       return <><h2><Multiline value={slide.title} /></h2><p className="jev-slide-lead">{slide.lead}</p><div className="jev-slide-process">{slide.stages.map(([name, body], index) => <div key={name}><small>0{index + 1} / {name}</small><strong>{body}</strong></div>)}</div></>;
@@ -116,7 +129,6 @@ export default function JevSlides() {
         {slide.kind !== 'cover' && <div className="jev-slide-heading"><span>{slide.eyebrow}</span><span>JEV / 002</span></div>}
         <div className="jev-slide-content"><SlideBody slide={slide} t={t} locale={locale} /></div>
         {slide.foot && <p className="jev-slide-foot">{slide.foot}</p>}
-        {slide.kind === 'timeline' && <p className="jev-slide-draft">{t.draft}</p>}
         {slide.kind === 'cover' && <span className="jev-slide-poster-note">{t.posterDetails}</span>}
       </section>)}
     </main>
