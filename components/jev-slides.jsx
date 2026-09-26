@@ -12,14 +12,38 @@ function Multiline({ value }) {
 
 function DiagramGlyph({ kind }) {
   const shared = { viewBox: '0 0 80 80', fill: 'none', stroke: 'currentColor', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true };
-  if (kind === 'efficiency') return <svg {...shared}><circle cx="40" cy="42" r="24" /><path d="M40 42 55 27M27 58h26M40 12v5M18 22l4 4M62 22l-4 4" /><path d="m51 27 5-1-1 5" /></svg>;
-  if (kind === 'per-use') return <svg {...shared}><path d="M16 58h48M21 32v26M34 38v20M47 45v13M60 51v7" /><path d="m49 18 13 13m0 0V22m0 9h-9" /></svg>;
-  if (kind === 'spread') return <svg {...shared}><rect x="12" y="17" width="15" height="15" /><rect x="33" y="17" width="15" height="15" /><rect x="54" y="17" width="15" height="15" /><rect x="12" y="39" width="15" height="15" /><rect x="33" y="39" width="15" height="15" /><rect x="54" y="39" width="15" height="15" /></svg>;
-  if (kind === 'total') return <svg {...shared}><path d="M14 61V17M14 61h54M22 51l14-9 11 2 16-22m0 0h-10m10 0v10" /></svg>;
   if (kind === 'input') return <svg {...shared}><rect x="18" y="13" width="44" height="54" rx="3" /><path d="M27 28h26M27 39h26M27 50h15" /></svg>;
   if (kind === 'judgment') return <svg {...shared}><path d="m40 9 29 31-29 31L11 40 40 9Z" /><path d="M40 27v12m0 0-11 12m11-12 11 12" /><circle cx="29" cy="54" r="2" fill="currentColor" stroke="none" /><circle cx="51" cy="54" r="2" fill="currentColor" stroke="none" /></svg>;
   if (kind === 'action') return <svg {...shared}><rect x="13" y="17" width="54" height="46" rx="3" /><path d="m23 32 8 8-8 8m17 0h17M44 28h13" /></svg>;
   return null;
+}
+
+function ModelArtwork({ slide, mobile = false }) {
+  const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 3, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  if (mobile) return <svg className="jev-model-art jev-model-art-mobile" viewBox="0 0 350 520" role="img" aria-label={slide.diagramAlt}>
+    <title>{slide.diagramAlt}</title>
+    <defs><radialGradient id="jev-model-glow-mobile"><stop stopColor="#ff8739" stopOpacity=".28" /><stop offset="1" stopColor="#ff8739" stopOpacity="0" /></radialGradient></defs>
+    <circle cx="175" cy="210" r="115" fill="url(#jev-model-glow-mobile)" />
+    <path d="M175 95v40M175 282v42M175 324H67v29M175 324v29m0-29h108v29" className="jev-model-wire" />
+    <path d="m169 128 6 7 6-7M61 346l6 7 6-7m102-7 6 7 6-7m102-7 6 7 6-7" className="jev-model-arrow" />
+    <g className="jev-model-art-input"><rect x="139" y="16" width="72" height="66" rx="5" {...common} /><path d="M152 35h46m-46 12h46m-46 12h29" {...common} /><text x="175" y="110" textAnchor="middle" className="jev-model-art-caption">{slide.inputHint}</text></g>
+    <g className="jev-model-art-core"><circle cx="175" cy="210" r="72" /><circle cx="175" cy="210" r="57" className="jev-model-core-inner" /><text x="175" y="205" textAnchor="middle" className="jev-model-art-jevcopy">JEV</text><text x="175" y="234" textAnchor="middle" className="jev-model-art-caption">{slide.coreLabel}</text></g>
+    <g className="jev-model-art-output" transform="translate(67 392)"><path d="M-25-18 0-34l25 16M-25-18v28M0-34v44M25-18v28" {...common} /><circle cy="10" r="5" /><circle cx="-25" cy="10" r="4" /><circle cx="25" cy="10" r="4" /><text y="48" textAnchor="middle" className="jev-model-art-name">Choice</text><text y="70" textAnchor="middle" className="jev-model-art-caption">{slide.artOutputs[0]}</text></g>
+    <g className="jev-model-art-output" transform="translate(175 392)"><path d="M-30 13v-16m15 16v-30M0 13v-42m15 42v-23m15 23v-35" {...common} /><path d="M-36 15h72" {...common} /><text y="48" textAnchor="middle" className="jev-model-art-name">Score</text><text y="70" textAnchor="middle" className="jev-model-art-caption">{slide.artOutputs[1]}</text></g>
+    <g className="jev-model-art-output" transform="translate(283 392)"><path d="M-30 4h60M-30 4c13-31 29-31 42 0" {...common} /><circle cx="12" cy="4" r="6" /><text y="48" textAnchor="middle" className="jev-model-art-name">Noul</text><text y="70" textAnchor="middle" className="jev-model-art-caption">{slide.artOutputs[2]}</text></g>
+  </svg>;
+  return <svg className="jev-model-art jev-model-art-desktop" viewBox="0 0 1000 390" role="img" aria-label={slide.diagramAlt}>
+    <title>{slide.diagramAlt}</title>
+    <defs><radialGradient id="jev-model-glow-desktop"><stop stopColor="#ff8739" stopOpacity=".27" /><stop offset="1" stopColor="#ff8739" stopOpacity="0" /></radialGradient></defs>
+    <circle cx="455" cy="195" r="170" fill="url(#jev-model-glow-desktop)" />
+    <path d="M196 195h113M585 195h50M635 65v260M635 65h85m-85 130h85m-85 130h85" className="jev-model-wire" />
+    <path d="m300 189 9 6-9 6m411-142 9 6-9 6m-9 124 9 6-9 6m-9 124 9 6-9 6" className="jev-model-arrow" />
+    <g className="jev-model-art-input"><rect x="62" y="110" width="102" height="119" rx="6" {...common} /><path d="M80 139h66m-66 19h66m-66 19h43" {...common} /><text x="113" y="267" textAnchor="middle" className="jev-model-art-caption">{slide.inputHint}</text></g>
+    <g className="jev-model-art-core"><circle cx="455" cy="195" r="126" /><circle cx="455" cy="195" r="99" className="jev-model-core-inner" /><text x="455" y="190" textAnchor="middle" className="jev-model-art-jevcopy">JEV</text><text x="455" y="233" textAnchor="middle" className="jev-model-art-caption">{slide.coreLabel}</text></g>
+    <g className="jev-model-art-output" transform="translate(800 65)"><path d="M-25-12 0-28l25 16M-25-12v25M0-28v41M25-12v25" {...common} /><circle cy="13" r="5" /><circle cx="-25" cy="13" r="4" /><circle cx="25" cy="13" r="4" /><text x="50" y="3" className="jev-model-art-name">Choice</text><text x="50" y="29" className="jev-model-art-caption">{slide.artOutputs[0]}</text></g>
+    <g className="jev-model-art-output" transform="translate(800 195)"><path d="M-28 19v-22m14 22v-37M0 19v-49m14 49v-28m14 28v-42M-34 21h68" {...common} /><text x="50" y="3" className="jev-model-art-name">Score</text><text x="50" y="29" className="jev-model-art-caption">{slide.artOutputs[1]}</text></g>
+    <g className="jev-model-art-output" transform="translate(800 325)"><path d="M-30 4h60M-30 4c13-31 29-31 42 0" {...common} /><circle cx="12" cy="4" r="6" /><text x="50" y="3" className="jev-model-art-name">Noul</text><text x="50" y="29" className="jev-model-art-caption">{slide.artOutputs[2]}</text></g>
+  </svg>;
 }
 
 const partnerMarks = [
@@ -74,17 +98,14 @@ function SlideBody({ slide, t, locale }) {
       </div>;
     case 'origin':
       return <div className="jev-origin-layout">
-        <div className="jev-origin-intro">
-          <div><span className="jev-origin-namesake">{slide.namesake}</span><h2>{slide.title}</h2></div>
-          <p>{slide.bridge}</p>
+        <div className="jev-origin-copy">
+          <h2>{slide.title}</h2>
+          <p className="jev-origin-context">{slide.context}</p>
+          <p className="jev-origin-observation">{slide.observation}</p>
+          <p className="jev-origin-idea">{slide.idea}</p>
+          <a className="jev-origin-source" href={slide.sourceUrl} target="_blank" rel="noopener noreferrer">{slide.source} ↗</a>
         </div>
-        <ol className="jev-paradox-flow" aria-label={slide.diagramLabel}>
-          {slide.diagram.map(([kind, title, label]) => <li key={kind}>
-            <div className="jev-paradox-glyph"><DiagramGlyph kind={kind} /></div>
-            <strong>{title}</strong><span>{label}</span>
-          </li>)}
-        </ol>
-        <a className="jev-origin-source" href={slide.sourceUrl} target="_blank" rel="noopener noreferrer">{slide.source} ↗</a>
+        <div className="jev-origin-mark" aria-hidden="true"><strong>JEV</strong><span>{slide.namesake}</span></div>
       </div>;
     case 'mission':
       return <div className="jev-mission-layout">
@@ -101,18 +122,8 @@ function SlideBody({ slide, t, locale }) {
     case 'model':
       return <div className="jev-model-layout">
         <h2>{slide.title}</h2>
-        <div className="jev-model-diagram" role="group" aria-label={slide.diagramLabel}>
-          <div className="jev-model-input"><span>{slide.inputLabel}</span><DiagramGlyph kind="input" /><strong>{slide.inputHint}</strong></div>
-          <div className="jev-model-core"><span>JEV</span><small>{slide.coreLabel}</small></div>
-          <div className="jev-model-outputs">{slide.primitives.map(([name, body]) => <div className="jev-model-output" key={name}>
-            <div className={`jev-model-sample jev-model-sample-${name.toLowerCase()}`} aria-hidden="true">
-              {name === 'Choice' && <><i>A</i><i>B</i><i>C</i></>}
-              {name === 'Score' && <><i /><i /><i /><i /><i /></>}
-              {name === 'Noul' && <><b /><i /></>}
-            </div>
-            <strong>{name}</strong><span>{body}</span>
-          </div>)}</div>
-        </div>
+        <ModelArtwork slide={slide} />
+        <ModelArtwork slide={slide} mobile />
         <p className="jev-model-note">{slide.sampleNote}</p>
       </div>;
     case 'example':
