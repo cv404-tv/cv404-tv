@@ -10,6 +10,18 @@ function Multiline({ value }) {
   return value.split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>);
 }
 
+function DiagramGlyph({ kind }) {
+  const shared = { viewBox: '0 0 80 80', fill: 'none', stroke: 'currentColor', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true };
+  if (kind === 'efficiency') return <svg {...shared}><circle cx="40" cy="42" r="24" /><path d="M40 42 55 27M27 58h26M40 12v5M18 22l4 4M62 22l-4 4" /><path d="m51 27 5-1-1 5" /></svg>;
+  if (kind === 'per-use') return <svg {...shared}><path d="M16 58h48M21 32v26M34 38v20M47 45v13M60 51v7" /><path d="m49 18 13 13m0 0V22m0 9h-9" /></svg>;
+  if (kind === 'spread') return <svg {...shared}><rect x="12" y="17" width="15" height="15" /><rect x="33" y="17" width="15" height="15" /><rect x="54" y="17" width="15" height="15" /><rect x="12" y="39" width="15" height="15" /><rect x="33" y="39" width="15" height="15" /><rect x="54" y="39" width="15" height="15" /></svg>;
+  if (kind === 'total') return <svg {...shared}><path d="M14 61V17M14 61h54M22 51l14-9 11 2 16-22m0 0h-10m10 0v10" /></svg>;
+  if (kind === 'input') return <svg {...shared}><rect x="18" y="13" width="44" height="54" rx="3" /><path d="M27 28h26M27 39h26M27 50h15" /></svg>;
+  if (kind === 'judgment') return <svg {...shared}><path d="m40 9 29 31-29 31L11 40 40 9Z" /><path d="M40 27v12m0 0-11 12m11-12 11 12" /><circle cx="29" cy="54" r="2" fill="currentColor" stroke="none" /><circle cx="51" cy="54" r="2" fill="currentColor" stroke="none" /></svg>;
+  if (kind === 'action') return <svg {...shared}><rect x="13" y="17" width="54" height="46" rx="3" /><path d="m23 32 8 8-8 8m17 0h17M44 28h13" /></svg>;
+  return null;
+}
+
 const partnerMarks = [
   '/assets/jev-partner-hackers-and-painters.png',
   '/assets/jev-partner-your-space.png',
@@ -62,19 +74,47 @@ function SlideBody({ slide, t, locale }) {
       </div>;
     case 'origin':
       return <div className="jev-origin-layout">
-        <div className="jev-origin-copy">
-          <h2>{slide.title}</h2>
-          <p className="jev-origin-context">{slide.context}</p>
-          <p className="jev-origin-observation">{slide.observation}</p>
-          <p className="jev-origin-idea">{slide.idea}</p>
-          <a className="jev-origin-source" href={slide.sourceUrl} target="_blank" rel="noopener noreferrer">{slide.source} ↗</a>
+        <div className="jev-origin-intro">
+          <div><span className="jev-origin-namesake">{slide.namesake}</span><h2>{slide.title}</h2></div>
+          <p>{slide.bridge}</p>
         </div>
-        <div className="jev-origin-mark" aria-hidden="true"><strong>JEV</strong><span>{slide.namesake}</span></div>
+        <ol className="jev-paradox-flow" aria-label={slide.diagramLabel}>
+          {slide.diagram.map(([kind, title, label]) => <li key={kind}>
+            <div className="jev-paradox-glyph"><DiagramGlyph kind={kind} /></div>
+            <strong>{title}</strong><span>{label}</span>
+          </li>)}
+        </ol>
+        <a className="jev-origin-source" href={slide.sourceUrl} target="_blank" rel="noopener noreferrer">{slide.source} ↗</a>
       </div>;
     case 'mission':
-      return <><h2><Multiline value={slide.title} /></h2><p className="jev-slide-lead">{slide.lead}</p><div className="jev-slide-process">{slide.stages.map(([name, body], index) => <div key={name}><small>0{index + 1} / {name}</small><strong>{body}</strong></div>)}</div></>;
+      return <div className="jev-mission-layout">
+        <div className="jev-mission-intro"><h2><Multiline value={slide.title} /></h2><p>{slide.lead}</p></div>
+        <ol className="jev-mission-flow" aria-label={slide.flowLabel}>
+          {slide.stages.map(([kind, name, body], index) => <li key={kind}>
+            <span className="jev-mission-number">0{index + 1}</span>
+            <div className="jev-mission-glyph"><DiagramGlyph kind={kind} /></div>
+            <strong>{name}</strong><span>{body}</span>
+          </li>)}
+        </ol>
+        <div className="jev-mission-fallback"><span aria-hidden="true">↳</span>{slide.fallback}</div>
+      </div>;
     case 'model':
-      return <><h2>{slide.title}</h2><p className="jev-slide-lead">{slide.lead}</p><div className="jev-slide-primitives">{slide.primitives.map(([name, body]) => <div key={name}><strong>{name}</strong><span>{body}</span></div>)}</div></>;
+      return <div className="jev-model-layout">
+        <h2>{slide.title}</h2>
+        <div className="jev-model-diagram" role="group" aria-label={slide.diagramLabel}>
+          <div className="jev-model-input"><span>{slide.inputLabel}</span><DiagramGlyph kind="input" /><strong>{slide.inputHint}</strong></div>
+          <div className="jev-model-core"><span>JEV</span><small>{slide.coreLabel}</small></div>
+          <div className="jev-model-outputs">{slide.primitives.map(([name, body]) => <div className="jev-model-output" key={name}>
+            <div className={`jev-model-sample jev-model-sample-${name.toLowerCase()}`} aria-hidden="true">
+              {name === 'Choice' && <><i>A</i><i>B</i><i>C</i></>}
+              {name === 'Score' && <><i /><i /><i /><i /><i /></>}
+              {name === 'Noul' && <><b /><i /></>}
+            </div>
+            <strong>{name}</strong><span>{body}</span>
+          </div>)}</div>
+        </div>
+        <p className="jev-model-note">{slide.sampleNote}</p>
+      </div>;
     case 'example':
       return <><h2>{slide.title}</h2><blockquote>{slide.quote}</blockquote><div className="jev-slide-example-flow">{slide.flow.map(([label, body], index) => <div key={label}><small>0{index + 1} / {label}</small><strong>{body}</strong></div>)}</div></>;
     case 'tracks':
