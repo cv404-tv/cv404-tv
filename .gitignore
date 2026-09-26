@@ -7,3 +7,5 @@ output/
 .DS_Store
 .next/
 out/
+outputs/
+work/

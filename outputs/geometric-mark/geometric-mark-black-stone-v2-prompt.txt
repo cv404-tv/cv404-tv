@@ -1,2 +1,0 @@
-Built-in image_gen created only the material texture. Prompt: Seamless tileable matte black basalt texture, flat orthographic macro scan, fine irregular mineral grains and small pores, uniform neutral illumination, no objects or shapes.
-Final geometry: existing geometric-mark.svg paths, clips and transforms are unchanged. Native SVG patterns apply the texture with face-dependent lighting; rendered to a transparent PNG.
