@@ -6,7 +6,7 @@
 .signal-intro h1 > span { display: block; margin-top: 7px; font: 11px var(--mono); letter-spacing: 5px; color: var(--muted); }
 .signal-lede { margin: 16px 0 0; font-size: 16px; letter-spacing: 1px; }
 .signal-intro-note { max-width: 295px; font-size: 12px; line-height: 1.9; color: var(--muted); }
-.signal-intro-note a { display: inline-flex; align-items: center; min-height: 44px; color: var(--fg); border-bottom: 1px solid var(--stroke); }
+.signal-intro-note a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 6px; padding: 0 14px; border: 1px solid var(--accent); border-radius: 3px; background: #c838321c; color: var(--fg); font-weight: 650; }
 .tv-stage.signal-machine { margin: 0; padding: 0; width: 100%; max-width: none; scroll-margin-top: 16px; }
 .signal-machine .television { transform: none; }
 .signal-machine .tv-main { grid-template-columns: minmax(0, 1fr) 166px; }
@@ -146,7 +146,7 @@
   .signal-lede { font-size: 14px; }
   .signal-intro-note { max-width: none; }
   .signal-intro-note > p { margin: 12px 0 0; font-size: 11px; }
-  .signal-intro-note > a { display: none; }
+  .signal-intro-note > a { display: inline-flex; }
   .signal-machine .tv-main { display: flex; flex-direction: column; gap: 12px; padding: 9px; }
   .signal-machine .television { padding: 10px 12px 3px; border-radius: 13px; }
   .signal-machine .picture-surround { padding: 9px; }

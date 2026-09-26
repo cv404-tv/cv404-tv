@@ -3,6 +3,7 @@
 [data-theme="dark"] .jev-site { --j-bg: #1b2022; --j-ink: #f2ebdd; --j-muted: #b4b3ab; --j-line: #f2ebdd30; --j-panel: #252b2d; --j-red: #ff8075; }
 .jev-site .site-header, .jev-site .site-footer { color: var(--j-ink); }
 .jev-site .header-nav a, .jev-site .header-location, .jev-site .account-button, .jev-site .site-footer { color: var(--j-muted); }
+.jev-site .header-nav .header-events-link { color: var(--j-ink); border-color: var(--j-red); background: #b9312b20; }
 .jev-page { width: min(1180px, calc(100% - 96px)); margin: 0 auto; }
 .jev-page section[id] { scroll-margin-top: 30px; }
 .jev-edition { display: flex; justify-content: space-between; gap: 20px; padding: 24px 0; border-top: 1px solid var(--j-line); font: 11px var(--mono); letter-spacing: .07em; }

@@ -36,22 +36,17 @@ export function Header({ guide = false, tool = false, game = false }) {
         </span>
       )}
       <nav className="header-nav" aria-label={locale === "zh" ? "主导航" : "Main navigation"}>
-        {guide && <Link className="site-back-link" href="/events">{t.back}</Link>}
-        {game ? (
-          <Link href="/events">{locale === "zh" ? "活动" : "Events"}</Link>
-        ) : (
-          <>
-            <Link className="header-game-link" href="/">
-              {locale === "zh" ? "搜寻信号" : "Signal Search"}
-            </Link>
-            {!guide && <Link href="/events">{locale === "zh" ? "活动" : "Events"}</Link>}
-          </>
-        )}
+        <Link className="glass join-button header-events-link" href="/events">
+          {guide ? t.back : locale === "zh" ? "活动" : "Events"} <span aria-hidden="true">↗</span>
+        </Link>
         <Link href="/tokens">{locale === "zh" ? "免费 Token" : "Free tokens"}</Link>
-        {user?.isAdmin && <Link href="/admin">{locale === "zh" ? "管理后台" : "Admin"}</Link>}
-        {!tool && <Link className="glass join-button" href="/tier">
-          {t.rate} <span aria-hidden="true">↗</span>
+        {!game && <Link className="header-game-link" href="/">
+          {locale === "zh" ? "搜寻信号" : "Signal Search"}
         </Link>}
+        {!tool && <Link className="header-tool-link" href="/tier">
+          {locale === "zh" ? "锐评小工具" : "Hot Take Tool"}
+        </Link>}
+        {user?.isAdmin && <Link href="/admin">{locale === "zh" ? "管理后台" : "Admin"}</Link>}
       </nav>
       <div className="header-utilities">
         <AccountButton />
@@ -67,8 +62,8 @@ export function Footer() {
       <span>{t.footer}</span>
       <Link href="/">{locale === "zh" ? "404 信号搜寻" : "404 Signal Search"} ↗</Link>
       <Link href="/events">{locale === "zh" ? "活动" : "Events"} ↗</Link>
-      <Link href="/tier">{locale === "zh" ? "锐评小工具" : "Hot Take Tool"} ↗</Link>
       <Link href="/tokens">{locale === "zh" ? "免费 Token" : "Free tokens"} ↗</Link>
+      <Link href="/tier">{locale === "zh" ? "锐评小工具" : "Hot Take Tool"} ↗</Link>
       <Link href="/guide">{t.guideLink} ↗</Link>
       <Link href="/privacy">{locale === "zh" ? "App 隐私政策" : "App privacy policy"} ↗</Link>
     </footer>

@@ -26,8 +26,16 @@
   white-space: nowrap;
 }
 .header-game-link,
-.site-back-link {
+.header-tool-link {
   color: var(--muted);
+}
+.header-nav > .header-events-link {
+  color: var(--fg);
+  font-weight: 650;
+}
+.header-nav > .header-tool-link {
+  color: var(--muted);
+  font-size: 11px;
 }
 .header-nav .join-button {
   padding: 10px 16px;
@@ -112,7 +120,6 @@
     gap: 20px;
     flex-wrap: wrap;
   }
-  .header-nav .join-button { margin-left: auto; }
 }
 @media (max-width: 560px) {
   .site-header { padding: 16px 16px 10px; }
